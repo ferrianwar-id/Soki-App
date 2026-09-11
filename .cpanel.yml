@@ -1,11 +1,9 @@
 ---
 deployment:
   tasks:
+    - export DEPLOYPATH=/home/aapjgfju/public_html/soki-app.digipassplatinum.my.id
+    - /bin/cp -R dist/* $DEPLOYPATH
+    - /bin/cp -f dist/.htaccess $DEPLOYPATH/.htaccess
+    - /bin/cp -f dist/api.php $DEPLOYPATH/api.php
     - /bin/mkdir -p /home/aapjgfju/Soki-App
-    - /bin/cp -rf dist/* /home/aapjgfju/Soki-App/
-    - /bin/cp -f dist/.htaccess /home/aapjgfju/Soki-App/.htaccess
-    - /bin/cp -f dist/api.php /home/aapjgfju/Soki-App/api.php
-    - /bin/mkdir -p /home/aapjgfju/public_html/soki-app.digipassplatinum.my.id
-    - /bin/cp -rf dist/* /home/aapjgfju/public_html/soki-app.digipassplatinum.my.id/
-    - /bin/cp -f dist/.htaccess /home/aapjgfju/public_html/soki-app.digipassplatinum.my.id/.htaccess
-    - /bin/cp -f dist/api.php /home/aapjgfju/public_html/soki-app.digipassplatinum.my.id/api.php
+    - /bin/cp -R dist/* /home/aapjgfju/Soki-App/
