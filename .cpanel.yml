@@ -1,7 +1,20 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/aapjgfju/repositories/Soki-App
-    - /bin/cp -R dist/* $DEPLOYPATH
-    - /bin/cp dist/.htaccess $DEPLOYPATH/.htaccess
-    - /bin/cp dist/api.php $DEPLOYPATH/api.php
+    # 1. Salin ke folder repositori
+    - /bin/cp -R dist/* /home/aapjgfju/repositories/Soki-App/
+    - /bin/cp -f dist/.htaccess /home/aapjgfju/repositories/Soki-App/.htaccess
+    - /bin/cp -f dist/api.php /home/aapjgfju/repositories/Soki-App/api.php
+
+    # 2. Salin ke Document Root Website Subdomain (folder publik aktif)
+    - /bin/cp -R dist/* /home/aapjgfju/public_html/soki-app.digipassplatinum.my.id/ 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess /home/aapjgfju/public_html/soki-app.digipassplatinum.my.id/.htaccess 2>/dev/null || true
+    - /bin/cp -f dist/api.php /home/aapjgfju/public_html/soki-app.digipassplatinum.my.id/api.php 2>/dev/null || true
+
+    - /bin/cp -R dist/* /home/aapjgfju/soki-app.digipassplatinum.my.id/ 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess /home/aapjgfju/soki-app.digipassplatinum.my.id/.htaccess 2>/dev/null || true
+    - /bin/cp -f dist/api.php /home/aapjgfju/soki-app.digipassplatinum.my.id/api.php 2>/dev/null || true
+
+    - /bin/cp -R dist/* /home/aapjgfju/public_html/soki-app/ 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess /home/aapjgfju/public_html/soki-app/.htaccess 2>/dev/null || true
+    - /bin/cp -f dist/api.php /home/aapjgfju/public_html/soki-app/api.php 2>/dev/null || true
