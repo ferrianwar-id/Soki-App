@@ -393,41 +393,40 @@ export default function ProductFormPage({
                   />
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
-                      Kategori Menu
-                    </label>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setProduct({ ...product, category: 'makanan' })}
-                        className={`p-3.5 rounded-2xl border-2 text-xs font-black flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                          product.category === 'makanan'
-                            ? 'bg-gradient-to-br from-orange-500 to-amber-500 border-orange-600 text-white shadow-lg shadow-orange-500/30 scale-[1.02]'
-                            : 'bg-gradient-to-br from-amber-50 to-orange-50/50 border-orange-200 text-orange-900 hover:border-orange-300'
-                        }`}
-                      >
-                        <span className="text-xl p-1.5 rounded-xl bg-white/80 shadow-xs">🍲</span>
-                        <span>Makanan</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setProduct({ ...product, category: 'minuman' })}
-                        className={`p-3.5 rounded-2xl border-2 text-xs font-black flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
-                          product.category === 'minuman'
-                            ? 'bg-gradient-to-br from-cyan-500 to-blue-600 border-blue-600 text-white shadow-lg shadow-cyan-500/30 scale-[1.02]'
-                            : 'bg-gradient-to-br from-cyan-50 to-blue-50/50 border-cyan-200 text-cyan-900 hover:border-cyan-300'
-                        }`}
-                      >
-                        <span className="text-xl p-1.5 rounded-xl bg-white/80 shadow-xs">🥤</span>
-                        <span>Minuman</span>
-                      </button>
-                    </div>
+                <div>
+                  <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
+                    Kategori Menu
+                  </label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      type="button"
+                      onClick={() => setProduct({ ...product, category: 'makanan' })}
+                      className={`p-3.5 rounded-2xl border-2 text-xs font-black flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        product.category === 'makanan'
+                          ? 'bg-gradient-to-br from-orange-500 to-amber-500 border-orange-600 text-white shadow-lg shadow-orange-500/30 scale-[1.02]'
+                          : 'bg-gradient-to-br from-amber-50 to-orange-50/50 border-orange-200 text-orange-900 hover:border-orange-300'
+                      }`}
+                    >
+                      <span className="text-xl p-1.5 rounded-xl bg-white/80 shadow-xs">🍲</span>
+                      <span>Makanan</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setProduct({ ...product, category: 'minuman' })}
+                      className={`p-3.5 rounded-2xl border-2 text-xs font-black flex flex-col items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                        product.category === 'minuman'
+                          ? 'bg-gradient-to-br from-cyan-500 to-blue-600 border-blue-600 text-white shadow-lg shadow-cyan-500/30 scale-[1.02]'
+                          : 'bg-gradient-to-br from-cyan-50 to-blue-50/50 border-cyan-200 text-cyan-900 hover:border-cyan-300'
+                      }`}
+                    >
+                      <span className="text-xl p-1.5 rounded-xl bg-white/80 shadow-xs">🥤</span>
+                      <span>Minuman</span>
+                    </button>
                   </div>
+                </div>
 
-                  {/* Harga Jual, Modal Awal (HPP), & Stok Barang */}
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {/* Harga Jual, Modal Awal (HPP), & Stok Barang */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                       <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
                         Harga Jual Satuan (Rp) <span className="text-red-500">*</span>
@@ -574,7 +573,6 @@ export default function ProductFormPage({
                       </div>
                     );
                   })()}
-                </div>
 
                 <div className="sm:hidden pt-2">
                   <label className="block text-xs font-black text-slate-700 uppercase tracking-wider mb-2">
