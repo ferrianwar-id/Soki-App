@@ -77,6 +77,8 @@ if (isset($_GET['install']) && $_GET['install'] === 'true' && $pdo) {
               `nama` varchar(255) NOT NULL,
               `deskripsi` text DEFAULT NULL,
               `harga` int(11) NOT NULL DEFAULT 3000,
+              `harga_modal` int(11) DEFAULT 0,
+              `stok` int(11) DEFAULT NULL,
               `badge` varchar(100) DEFAULT 'Menu Pilihan',
               `gambar_url` text DEFAULT NULL,
               `varian_json` text DEFAULT NULL,
@@ -86,6 +88,7 @@ if (isset($_GET['install']) && $_GET['install'] === 'true' && $pdo) {
               `harga_promo` int(11) DEFAULT 5000,
               `min_qty_promo` int(11) DEFAULT 2,
               `promo_aktif` tinyint(1) DEFAULT 1,
+              `dibuat_pada` datetime DEFAULT CURRENT_TIMESTAMP,
               PRIMARY KEY (`id`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -188,6 +191,8 @@ if ($pdo) {
                 'name' => $m['nama'],
                 'description' => $m['deskripsi'],
                 'price' => (int)$m['harga'],
+                'costPrice' => isset($m['harga_modal']) ? (int)$m['harga_modal'] : 0,
+                'stock' => isset($m['stok']) && $m['stok'] !== null ? (int)$m['stok'] : null,
                 'badge' => $m['badge'],
                 'imageUrl' => $m['gambar_url'],
                 'variants' => json_decode($m['varian_json'] ?? '["Original"]', true),
