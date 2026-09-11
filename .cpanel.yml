@@ -1,0 +1,7 @@
+---
+deployment:
+  tasks:
+    - export DEPLOYPATH=/home/aapjgfju/Soki-App
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -R dist/* $DEPLOYPATH/ 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess $DEPLOYPATH/.htaccess 2>/dev/null || true

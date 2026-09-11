@@ -1,0 +1,6 @@
+{
+  "name": "Soki",
+  "description": "Website fullstack Soki untuk menjual Snack Soba renyah dan Aneka Es Kiko segar.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

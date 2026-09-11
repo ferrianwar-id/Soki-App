@@ -1,0 +1,12 @@
+# Konfigurasi Koneksi Database cPanel (MySQL)
+DB_HOST=localhost
+DB_USER=namadatabase_user
+DB_PASS=password_anda
+DB_NAME=namadatabase_soki
+
+# Tabel MySQL menggunakan Bahasa Indonesia:
+# 1. pengaturan_situs
+# 2. menu_produk
+# 3. kartu_beranda
+# 4. tim_pengelola
+# 5. pesanan

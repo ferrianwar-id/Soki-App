@@ -1,0 +1,168 @@
+{
+  "siteSettings": {
+    "googleDriveWebhookUrl": "https://script.google.com/macros/s/AKfycbw3ciTgbfS02kkOoYkV4hBazrEXeumtH0SRRI70UkJqBfpIpV5HGxcDVxixQEqQOjzc/exec",
+    "siteTitle": "Soki - Snack Renyah & Aneka Es Segar",
+    "heroHeadline": "Renyahnya Bikin Nagih, Segarnya Balikin Mood!",
+    "heroHighlight": "Renyahnya, Segarnya",
+    "heroSubtitle": "Kami dari kelas 8B kelompok 3 menyediakan beberapa varian menu makanan untuk hari Rabu. Temukan kombinasi cemilan renyah gurih dan aneka es manis segar favoritmu di Soki.",
+    "announcement": "Kelas 8B Kelompok 3 • Menu Hari Rabu",
+    "whatsappNumber": "+6281384998659",
+    "aboutTitle": "Tim Pengelola Soki (Kelompok 3)",
+    "aboutSubtitle": "Toko Soki dikelola bersama oleh siswa-siswi Kelas 8B Kelompok 3 untuk menyajikan aneka jajanan renyah dan es manis segar pilihan.",
+    "aboutBadge": "Kelas 8B Kelompok 3",
+    "features": [
+      {
+        "title": "Snack Dijamin Garing",
+        "description": "Snack Soba dikemas rapi dan higienis agar kerenyahannya selalu terjaga saat jam istirahat.",
+        "icon": "🍟"
+      },
+      {
+        "title": "Es Kiko Beku & Segar",
+        "description": "Disajikan dingin beku sempurna, sangat pas melepas dahaga di siang hari.",
+        "icon": "🧊"
+      },
+      {
+        "title": "Harga Ramah Kantong",
+        "description": "Pilihan jajanan hemat dan pas untuk teman ngobrol bareng teman sekelas.",
+        "icon": "⚡"
+      }
+    ],
+    "googleDriveProductFolderId": "1UWYqogBiwBhd2TuJei-ris2o8jtt4l5n",
+    "googleDriveCardFolderId": "14MtwwTYN-98UHxlIIaYMcWGC_iUZomOn",
+    "maintenance": {
+      "enabled": false,
+      "title": "Website Sedang Dalam Pemeliharaan",
+      "reason": "Persiapan Menu Penjualan Hari Rabu",
+      "message": "Halo! Kami sedang memperbarui daftar menu produk baru dan penyesuaian promo menarik untuk kamu. Website akan segera dibuka kembali!",
+      "autoSchedule": false,
+      "allowBypass": true,
+      "scheduledStart": "",
+      "scheduledEnd": "",
+      "estimatedTime": "Segera Hadir"
+    },
+    "storeSchedule": {
+      "statusMode": "auto",
+      "closedTitle": "Toko Sedang Tutup",
+      "closedMessage": "Halo! Saat ini toko SOKI sedang tutup dan akan buka kembali sesuai jadwal operasional.",
+      "allowPreorderWhatsApp": false,
+      "weeklySchedule": [
+        {
+          "day": "monday",
+          "dayName": "Senin",
+          "isOpen": true,
+          "openTime": "08:00",
+          "closeTime": "17:00"
+        },
+        {
+          "day": "tuesday",
+          "dayName": "Selasa",
+          "isOpen": true,
+          "openTime": "08:00",
+          "closeTime": "17:00"
+        },
+        {
+          "day": "wednesday",
+          "dayName": "Rabu",
+          "isOpen": true,
+          "openTime": "07:30",
+          "closeTime": "17:30"
+        },
+        {
+          "day": "thursday",
+          "dayName": "Kamis",
+          "isOpen": true,
+          "openTime": "08:00",
+          "closeTime": "17:00"
+        },
+        {
+          "day": "friday",
+          "dayName": "Jumat",
+          "isOpen": true,
+          "openTime": "08:00",
+          "closeTime": "17:00"
+        },
+        {
+          "day": "saturday",
+          "dayName": "Sabtu",
+          "isOpen": true,
+          "openTime": "08:00",
+          "closeTime": "15:00"
+        },
+        {
+          "day": "sunday",
+          "dayName": "Minggu",
+          "isOpen": false,
+          "openTime": "08:00",
+          "closeTime": "15:00"
+        }
+      ],
+      "specialNote": ""
+    }
+  },
+  "heroCards": [
+    {
+      "id": "snack",
+      "title": "Snack Soba (3 Varian)",
+      "subtitle": "Renyah gurih bumbu mantap",
+      "badge": "Cemilan Renyah",
+      "imageUrl": "",
+      "icon": "🍟",
+      "bgGradient": "from-amber-400 to-orange-500",
+      "accentColor": "#ea580c"
+    },
+    {
+      "id": "es",
+      "title": "Es Kiko (5 Varian)",
+      "subtitle": "Manis beku pelepas dahaga",
+      "badge": "Es Pelepas Dahaga",
+      "imageUrl": "",
+      "icon": "🥤",
+      "bgGradient": "from-cyan-400 to-blue-500",
+      "accentColor": "#0284c7"
+    }
+  ],
+  "menuItems": [],
+  "teamMembers": [
+    {
+      "id": "member-valentino",
+      "name": "Valentino",
+      "absen": "8B/20",
+      "role": "",
+      "description": "",
+      "initial": "V",
+      "avatarUrl": null,
+      "themeColor": "amber"
+    },
+    {
+      "id": "member-kleinegan",
+      "name": "Kleinegan",
+      "absen": "8B/12",
+      "role": "",
+      "description": "",
+      "initial": "K",
+      "avatarUrl": null,
+      "themeColor": "sky"
+    },
+    {
+      "id": "member-karin",
+      "name": "Karin",
+      "absen": "8B/11",
+      "role": "",
+      "description": "",
+      "initial": "K",
+      "avatarUrl": null,
+      "themeColor": "rose"
+    },
+    {
+      "id": "member-rina",
+      "name": "Rina",
+      "absen": "8B/17",
+      "role": "",
+      "description": "",
+      "initial": "R",
+      "avatarUrl": null,
+      "themeColor": "emerald"
+    }
+  ],
+  "orders": []
+}
