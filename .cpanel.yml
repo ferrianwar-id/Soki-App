@@ -1,8 +1,29 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/aapjgfju/repositories/Soki-App
-    - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp -R dist/* $DEPLOYPATH/ 2>/dev/null || true
-    - /bin/cp -f dist/.htaccess $DEPLOYPATH/.htaccess 2>/dev/null || true
-    - /bin/cp -f dist/api.php $DEPLOYPATH/api.php 2>/dev/null || true
+    - export REPOPATH=/home/aapjgfju/repositories/Soki-App
+    - export SUBDOMAIN_PATH1=/home/aapjgfju/soki-app.digipassplatinum.my.id
+    - export SUBDOMAIN_PATH2=/home/aapjgfju/public_html/soki-app.digipassplatinum.my.id
+    - export SUBDOMAIN_PATH3=/home/aapjgfju/public_html/soki-app
+
+    # Salin ke Document Root Subdomain 1
+    - /bin/mkdir -p $SUBDOMAIN_PATH1
+    - /bin/cp -R dist/* $SUBDOMAIN_PATH1/ 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess $SUBDOMAIN_PATH1/.htaccess 2>/dev/null || true
+    - /bin/cp -f dist/api.php $SUBDOMAIN_PATH1/api.php 2>/dev/null || true
+
+    # Salin ke Document Root Subdomain 2 (jika di dalam public_html)
+    - /bin/mkdir -p $SUBDOMAIN_PATH2
+    - /bin/cp -R dist/* $SUBDOMAIN_PATH2/ 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess $SUBDOMAIN_PATH2/.htaccess 2>/dev/null || true
+    - /bin/cp -f dist/api.php $SUBDOMAIN_PATH2/api.php 2>/dev/null || true
+
+    # Salin ke Document Root Subdomain 3 (folder soki-app)
+    - /bin/mkdir -p $SUBDOMAIN_PATH3
+    - /bin/cp -R dist/* $SUBDOMAIN_PATH3/ 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess $SUBDOMAIN_PATH3/.htaccess 2>/dev/null || true
+    - /bin/cp -f dist/api.php $SUBDOMAIN_PATH3/api.php 2>/dev/null || true
+
+    # Salin juga ke folder repositori agar file tetap sinkron
+    - /bin/cp -f dist/api.php $REPOPATH/api.php 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess $REPOPATH/.htaccess 2>/dev/null || true
