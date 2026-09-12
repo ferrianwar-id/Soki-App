@@ -1,10 +1,8 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/aapjgfju/public_html/soki-website
+    - export DEPLOYPATH=/home/aapjgfju/Soki-App
     - /bin/mkdir -p $DEPLOYPATH
     - /bin/cp -R dist/* $DEPLOYPATH
     - /bin/cp -f dist/.htaccess $DEPLOYPATH/.htaccess
     - /bin/cp -f dist/api.php $DEPLOYPATH/api.php
-    - /bin/mkdir -p /home/aapjgfju/Soki-App
-    - /bin/cp -R dist/* /home/aapjgfju/Soki-App/
