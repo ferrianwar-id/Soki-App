@@ -135,7 +135,7 @@ export async function uploadImageFile(
   const productFolderId = "1UWYqogBiwBhd2TuJei-ris2o8jtt4l5n";
   const cardFolderId = "14MtwwTYN-98UHxlIIaYMcWGC_iUZomOn";
   const selectedFolderId = target === 'landingpage' ? cardFolderId : productFolderId;
-  const directWebhookUrl = webhookOverrideUrl || "";
+  const directWebhookUrl = webhookOverrideUrl || "https://script.google.com/macros/s/AKfycbw3ciTgbfS02kkOoYkV4hBazrEXeumtH0SRRI70UkJqBfpIpV5HGxcDVxixQEqQOjzc/exec";
 
   let attempt = 0;
   while (true) {

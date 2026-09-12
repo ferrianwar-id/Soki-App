@@ -1099,7 +1099,7 @@ export default function AdminPanel({
                               </div>
                               <div>
                                 <p className="font-black text-sm text-white tracking-wide">Gambar Terpasang!</p>
-                                <p className="text-[10px] text-emerald-200 font-semibold">Tersimpan di Database</p>
+                                <p className="text-[10px] text-emerald-200 font-semibold">Tersimpan di Google Drive</p>
                               </div>
                             </div>
                           )}
