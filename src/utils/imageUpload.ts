@@ -163,7 +163,7 @@ export async function uploadImageFile(
     }
 
     if (onStatusChange) {
-      onStatusChange(attempt > 1 ? `Mencoba ulang kirim ke Google Drive (${attempt})...` : 'Mengunggah file foto ke Google Drive...');
+      onStatusChange(attempt > 1 ? `Mencoba ulang unggah foto (${attempt})...` : 'Mengunggah foto...');
     }
 
     // 1. Coba upload via backend API (/api/admin/upload-drive)
@@ -205,7 +205,7 @@ export async function uploadImageFile(
     if (directWebhookUrl && directWebhookUrl.startsWith('http')) {
       try {
         if (onStatusChange) {
-          onStatusChange('Mengirim langsung ke Google Drive Webhook...');
+          onStatusChange('Memproses unggahan data gambar...');
         }
 
         const driveRes = await fetch(directWebhookUrl, {
@@ -251,7 +251,7 @@ export async function uploadImageFile(
 
     const delay = Math.min(6000, attempt * 1500);
     if (onStatusChange) {
-      onStatusChange(`Menghubungi Google Drive ulang dalam ${Math.round(delay/1000)} detik...`);
+      onStatusChange(`Menghubungkan ulang ke server dalam ${Math.round(delay/1000)} detik...`);
     }
     await new Promise(resolve => setTimeout(resolve, delay));
   }

@@ -125,6 +125,8 @@ if ($pdo) {
         if (count($colsModal) === 0) {
             $pdo->exec("ALTER TABLE `menu_produk` ADD COLUMN `harga_modal` int(11) DEFAULT 0 AFTER `harga`");
         }
+        $pdo->exec("ALTER TABLE `menu_produk` MODIFY COLUMN `gambar_url` LONGTEXT DEFAULT NULL");
+        $pdo->exec("ALTER TABLE `kartu_beranda` MODIFY COLUMN `gambar_url` LONGTEXT DEFAULT NULL");
     } catch (Exception $e) {}
 }
 

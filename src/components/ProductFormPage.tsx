@@ -139,7 +139,7 @@ export default function ProductFormPage({
 
     setUploadProgress(15);
     setUploadFinished(false);
-    setUploadStatusText('Mengunggah ke Google Drive...');
+    setUploadStatusText('Mengunggah foto...');
 
     const progressInterval = setInterval(() => {
       setUploadProgress(prev => {
