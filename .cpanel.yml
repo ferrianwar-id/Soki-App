@@ -1,7 +1,8 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/aapjgfju/public_html/soki-app.digipassplatinum.my.id
+    - export DEPLOYPATH=/home/aapjgfju/public_html/soki-website
+    - /bin/mkdir -p $DEPLOYPATH
     - /bin/cp -R dist/* $DEPLOYPATH
     - /bin/cp -f dist/.htaccess $DEPLOYPATH/.htaccess
     - /bin/cp -f dist/api.php $DEPLOYPATH/api.php
