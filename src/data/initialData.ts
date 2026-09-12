@@ -11,7 +11,7 @@ export const defaultSiteSettings: SiteSettings = {
   aboutTitle: "Tim Pengelola Soki (Kelompok 3)",
   aboutSubtitle: "Toko Soki dikelola bersama oleh siswa-siswi Kelas 8B Kelompok 3 untuk menyajikan aneka jajanan renyah dan es manis segar pilihan.",
   aboutBadge: "Kelas 8B Kelompok 3",
-  googleDriveWebhookUrl: "https://script.google.com/macros/s/AKfycbw3ciTgbfS02kkOoYkV4hBazrEXeumtH0SRRI70UkJqBfpIpV5HGxcDVxixQEqQOjzc/exec",
+  googleDriveWebhookUrl: "",
   googleDriveProductFolderId: "1UWYqogBiwBhd2TuJei-ris2o8jtt4l5n",
   googleDriveCardFolderId: "14MtwwTYN-98UHxlIIaYMcWGC_iUZomOn",
   maintenance: {
