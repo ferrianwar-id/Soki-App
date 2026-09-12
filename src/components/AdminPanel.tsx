@@ -2365,7 +2365,7 @@ export default function AdminPanel({
 
                             <div class="footer">
                               <div class="footer-brand">
-                                &copy; 2026 Soki Management System &bull; Kelompok 3 Kelas 8B &bull; Developed by <strong style="color: #ea580c;">Koko Ferri</strong>
+                                &copy; 2026 Soki Management System &bull; Kelompok 3 Kelas 8B &bull; Developed by <strong style="color: #ea580c;">Koko</strong>
                               </div>
                               <div>
                                 Dokumen Resmi Laporan Keuangan Harian (A4)
@@ -3350,7 +3350,7 @@ export default function AdminPanel({
             <span className="font-bold text-slate-700">Soki Management System - v.1</span>
           </div>
           <p className="text-slate-500">
-            Soki Management System &bull; Developed by <strong className="text-orange-600 font-bold">Koko Ferri</strong>
+            Soki Management System &bull; Developed by <strong className="text-orange-600 font-bold">Koko</strong>
           </p>
         </div>
       </footer>

@@ -369,7 +369,7 @@ export default function AboutPage({
               <span>Kelas 8B Kelompok 3</span>
             </div>
             <span className="hidden sm:inline">&bull;</span>
-            <span className="text-slate-300">Developed by <strong className="text-orange-400 font-bold">Koko Ferri</strong></span>
+            <span className="text-slate-300">Developed by <strong className="text-orange-400 font-bold">Koko</strong></span>
           </div>
 
           <div className="flex items-center gap-4 text-slate-400">

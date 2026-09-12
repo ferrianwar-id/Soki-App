@@ -305,7 +305,7 @@ export default function StoreClosedScreen({
             className="cursor-pointer select-none"
             title="Soki"
           >
-            Developed by <strong className="text-orange-400 font-bold">Koko Ferri</strong>
+            Developed by <strong className="text-orange-400 font-bold">Koko</strong>
           </span>
           {/* Subtle discreet lock icon only admin knows to click */}
           <button 
