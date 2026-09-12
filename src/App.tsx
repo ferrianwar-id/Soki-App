@@ -1427,7 +1427,7 @@ export default function App() {
             <p className="text-xs text-slate-500 flex flex-wrap items-center justify-center md:justify-end gap-1.5 mt-1">
               <span>&copy; {new Date().getFullYear()} SOKI Kelompok 3 Kelas 8B</span>
               <span>&bull;</span>
-              <span className="text-slate-400">Developed by <strong className="text-orange-400 font-bold">Koko</strong></span>
+              <span className="text-slate-400">Developed by <strong className="text-orange-400 font-bold">Koko Ferri</strong></span>
             </p>
           </div>
         </div>

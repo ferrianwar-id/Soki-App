@@ -204,7 +204,7 @@ export default function AdminLoginPage({ onLoginSuccess, onReturnToStore }: Admi
 
       {/* Footer */}
       <footer className="border-t border-amber-100 bg-white/60 py-3 sm:py-4 text-center text-xs text-slate-500">
-        <p>&copy; {new Date().getFullYear()} Soki Backend Portal &bull; Developed by <strong className="text-orange-600 font-bold">Koko</strong></p>
+        <p>&copy; {new Date().getFullYear()} Soki Backend Portal &bull; Developed by <strong className="text-orange-600 font-bold">Koko Ferri</strong></p>
       </footer>
     </div>
   );
