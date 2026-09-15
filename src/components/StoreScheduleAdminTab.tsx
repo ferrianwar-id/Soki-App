@@ -18,7 +18,7 @@ import {
   Info
 } from 'lucide-react';
 import { SiteSettings, StoreScheduleConfig, DaySchedule } from '../types';
-import { defaultStoreSchedule, defaultWeeklySchedule, getStoreStatus, StoreStatusResult } from '../utils/scheduleHelper';
+import { defaultStoreSchedule, defaultWeeklySchedule, getStoreStatus, StoreStatusResult, getJakartaTimeInfo } from '../utils/scheduleHelper';
 
 interface StoreScheduleAdminTabProps {
   siteSettings: SiteSettings;
@@ -63,15 +63,13 @@ export default function StoreScheduleAdminTab({
   }, [siteSettings?.storeSchedule]);
 
   const [currentRealTime, setCurrentRealTime] = useState<string>(() => {
-    const now = new Date();
-    return now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+    return getJakartaTimeInfo().formattedClock;
   });
 
   // Update real time clock every second
   useEffect(() => {
     const timer = setInterval(() => {
-      const now = new Date();
-      setCurrentRealTime(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB');
+      setCurrentRealTime(getJakartaTimeInfo().formattedClock);
     }, 1000);
     return () => clearInterval(timer);
   }, []);

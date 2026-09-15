@@ -19,7 +19,7 @@ import {
   SlidersHorizontal
 } from 'lucide-react';
 import { SiteSettings, StoreScheduleConfig, DaySchedule } from '../types';
-import { getStoreStatus, StoreStatusResult, defaultWeeklySchedule, defaultStoreSchedule } from '../utils/scheduleHelper';
+import { getStoreStatus, StoreStatusResult, defaultWeeklySchedule, defaultStoreSchedule, getJakartaTimeInfo } from '../utils/scheduleHelper';
 
 interface StoreClosedScreenProps {
   siteSettings: SiteSettings;
@@ -38,8 +38,7 @@ export default function StoreClosedScreen({
   const [showSecretModal, setShowSecretModal] = useState(false);
   const [secretClickCount, setSecretClickCount] = useState(0);
   const [currentRealTime, setCurrentRealTime] = useState<string>(() => {
-    const now = new Date();
-    return now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+    return getJakartaTimeInfo().formattedClock;
   });
 
   // Keyboard shortcut Ctrl+Shift+A for instant admin access
@@ -68,8 +67,7 @@ export default function StoreClosedScreen({
   // Update clock every second
   useEffect(() => {
     const updateTime = () => {
-      const now = new Date();
-      setCurrentRealTime(now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB');
+      setCurrentRealTime(getJakartaTimeInfo().formattedClock);
     };
 
     const interval = setInterval(updateTime, 1000);

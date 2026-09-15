@@ -314,11 +314,11 @@ export default function App() {
     window.addEventListener('visibilitychange', handleVisibilityOrFocus);
     window.addEventListener('focus', handleVisibilityOrFocus);
 
-    // Periodic synchronization every 5 seconds so different browsers immediately reflect
+    // Periodic synchronization every 3 seconds so different devices (HP/Desktop) immediately reflect
     // changes in maintenance mode and store schedule (24 jam / otomatis / tutup)
     const syncInterval = setInterval(() => {
       fetch('/api/store-status', {
-        headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
+        headers: { 'Cache-Control': 'no-cache, no-store, must-revalidate', 'Pragma': 'no-cache' }
       })
         .then(res => res.json())
         .then(data => {
@@ -340,7 +340,7 @@ export default function App() {
           });
         })
         .catch(() => {});
-    }, 5000);
+    }, 3000);
 
     return () => {
       window.removeEventListener('visibilitychange', handleVisibilityOrFocus);

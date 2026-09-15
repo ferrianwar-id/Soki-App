@@ -297,6 +297,39 @@ function fetchDatabaseMenuItems($pdo) {
     }
 }
 
+// 1.5. DEDICATED STORE STATUS & MAINTENANCE REALTIME POLLING (/api/store-status)
+if (strpos($uriPath, '/api/store-status') !== false && $method === 'GET') {
+    header("Cache-Control: no-cache, no-store, must-revalidate");
+    header("Pragma: no-cache");
+    header("Expires: 0");
+
+    $maintenance = ['enabled' => false];
+    $storeSchedule = null;
+
+    if ($pdo) {
+        try {
+            $stmt = $pdo->query("SELECT maintenance_json, jadwal_toko_json, schedule_json FROM pengaturan_situs WHERE id = 1 LIMIT 1");
+            $row = $stmt->fetch() ?: [];
+            if ($row) {
+                if (!empty($row['maintenance_json'])) {
+                    $maintenance = json_decode($row['maintenance_json'], true) ?: ['enabled' => false];
+                }
+                $schedRaw = !empty($row['jadwal_toko_json']) ? $row['jadwal_toko_json'] : ($row['schedule_json'] ?? null);
+                if (!empty($schedRaw)) {
+                    $storeSchedule = json_decode($schedRaw, true);
+                }
+            }
+        } catch (Throwable $e) {}
+    }
+
+    echo json_encode([
+        'maintenance' => $maintenance,
+        'storeSchedule' => $storeSchedule,
+        'serverTimeWib' => date('H:i:s')
+    ]);
+    exit;
+}
+
 // 2. GET PUBLIC STATE (/api/state)
 if (strpos($uriPath, '/api/state') !== false && $method === 'GET') {
     header("Cache-Control: no-cache, must-revalidate");
@@ -728,6 +761,34 @@ if ((strpos($uriPath, '/api/admin/settings') !== false || strpos($uriPath, '/api
           schedule_json = VALUES(schedule_json)
     ");
     $stmt->execute([$judul_situs, $headline, $highlight, $subjudul, $pengumuman, $nomor_whatsapp, $tentang_judul, $tentang_subjudul, $tentang_badge, $fitur_json, $webhook_drive, $folder_produk_id, $folder_landing_id, $maintenance_json, $jadwal_toko_json, $schedule_json]);
+
+    // Sync dedicated weekly schedule table (jadwal_operasional_toko)
+    if (!empty($body['storeSchedule']['weeklySchedule']) && is_array($body['storeSchedule']['weeklySchedule'])) {
+        try {
+            $stmtJadwal = $pdo->prepare("
+                INSERT INTO jadwal_operasional_toko (id, hari, nama_hari, buka, jam_buka, jam_tutup, urutan)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                ON DUPLICATE KEY UPDATE
+                  nama_hari = VALUES(nama_hari),
+                  buka = VALUES(buka),
+                  jam_buka = VALUES(jam_buka),
+                  jam_tutup = VALUES(jam_tutup),
+                  urutan = VALUES(urutan),
+                  diperbarui_pada = NOW()
+            ");
+            foreach ($body['storeSchedule']['weeklySchedule'] as $idx => $d) {
+                $stmtJadwal->execute([
+                    $d['day'],
+                    $d['day'],
+                    $d['dayName'] ?? $d['day'],
+                    !empty($d['isOpen']) ? 1 : 0,
+                    $d['openTime'] ?? '08:00',
+                    $d['closeTime'] ?? '17:00',
+                    $idx + 1
+                ]);
+            }
+        } catch (Throwable $e) {}
+    }
 
     echo json_encode(['success' => true]);
     exit;
