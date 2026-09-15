@@ -1,15 +1,29 @@
+<IfModule mod_mime.c>
+  AddType text/css .css
+  AddType application/javascript .js
+  AddType application/javascript .mjs
+  AddType application/json .json
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  AddType font/woff2 .woff2
+  AddType font/woff .woff
+</IfModule>
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
-  RewriteBase /
 
   # Preserve HTTP Authorization Header for PHP
   RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 
   # Proxy /api requests to api.php if on standard PHP cPanel
   RewriteRule ^api/(.*)$ api.php [QSA,L]
+  RewriteRule ^api$ api.php [QSA,L]
 
-  RewriteRule ^index\.html$ - [L]
-  RewriteCond %{REQUEST_FILENAME} !-f
-  RewriteCond %{REQUEST_FILENAME} !-d
-  RewriteRule . /index.html [L]
+  # Direct access for existing files and directories (CSS, JS, images, etc.)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # SPA Fallback to index.html
+  RewriteRule ^ index.html [L]
 </IfModule>
