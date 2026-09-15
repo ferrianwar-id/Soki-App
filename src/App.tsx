@@ -136,6 +136,7 @@ export default function App() {
   // Cart & UI states
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [hasUserClosedChat, setHasUserClosedChat] = useState(false);
   const [buyerName, setBuyerName] = useState('');
   const [activeCategory, setActiveCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -413,7 +414,12 @@ export default function App() {
       }
       return [...prevCart, { productId: item.id, name: item.name, variant, price: item.price, costPrice: item.costPrice || 0, qty: qtyToAdd }];
     });
-    if (!isChatOpen) {
+
+    // Buka otomatis kasir chat HANYA saat memilih barang pertama (sebelumnya keranjang kosong).
+    // Jika kasir chat telah diminimize/ditutup dan pembeli memilih barang kedua, 
+    // kasir chat tetap tertutup sampai pembeli menekan troley.
+    const isFirstItem = cart.length === 0;
+    if (isFirstItem && !hasUserClosedChat) {
       setIsChatOpen(true);
     }
   };
@@ -444,7 +450,13 @@ export default function App() {
   };
 
   const removeFromCart = (index: number) => {
-    setCart(prev => prev.filter((_, i) => i !== index));
+    setCart(prev => {
+      const updated = prev.filter((_, i) => i !== index);
+      if (updated.length === 0) {
+        setHasUserClosedChat(false);
+      }
+      return updated;
+    });
   };
 
   const totalItems = cart.reduce((sum, item) => sum + item.qty, 0);
@@ -617,6 +629,7 @@ export default function App() {
     setCart([]);
     setBuyerName('');
     setIsChatOpen(false);
+    setHasUserClosedChat(false);
     setIsCheckingOut(false);
 
     // Simpan ke local cache kasir sebagai cadangan instan
@@ -1074,13 +1087,25 @@ export default function App() {
             )}
 
             <button 
-              onClick={() => setIsChatOpen(!isChatOpen)} 
-              className="relative p-2.5 sm:px-4 sm:py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-full shadow-md shadow-orange-500/25 transition active:scale-95 cursor-pointer flex items-center justify-center"
+              onClick={() => {
+                const nextState = !isChatOpen;
+                setIsChatOpen(nextState);
+                if (nextState) {
+                  setHasUserClosedChat(false);
+                } else {
+                  setHasUserClosedChat(true);
+                }
+              }} 
+              className="relative p-2.5 sm:px-4 sm:py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-full shadow-md shadow-orange-500/25 transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
               title="Keranjang Belanja / Kasir"
+              aria-label="Keranjang Belanja"
             >
               <ShoppingCart className="w-5 h-5 shrink-0" />
               {totalItems > 0 && (
-                <span className="absolute -top-1 -right-1 bg-slate-900 text-white text-[10px] font-black rounded-full h-5 w-5 flex items-center justify-center border-2 border-white shadow-sm">
+                <span className="hidden sm:inline text-xs font-black">{totalItems} Barang</span>
+              )}
+              {totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 sm:hidden bg-slate-900 text-white text-[10px] font-black rounded-full h-5 w-5 flex items-center justify-center border-2 border-white shadow-sm">
                   {totalItems}
                 </span>
               )}
@@ -1888,23 +1913,78 @@ export default function App() {
       </footer>
 
       {/* ================= WIDGET KASIR GAYA FACEBOOK CHAT ================= */}
-      <div className={`fixed bottom-0 right-4 z-50 w-80 sm:w-88 bg-white rounded-t-2xl shadow-2xl border border-slate-300 overflow-hidden transition-all duration-300 flex flex-col transform ${isChatOpen ? 'translate-y-0' : 'translate-y-full'}`}>
+      <div 
+        className={`fixed bottom-0 right-3 sm:right-6 z-50 w-[calc(100vw-24px)] sm:w-88 max-w-sm bg-white rounded-t-2xl shadow-2xl border border-slate-300 overflow-hidden transition-all duration-300 flex flex-col transform ${
+          isChatOpen 
+            ? 'translate-y-0' 
+            : (totalItems > 0 ? 'translate-y-[calc(100%-54px)]' : 'translate-y-full')
+        }`}
+      >
         
         {/* Chat Header */}
-        <div onClick={() => setIsChatOpen(!isChatOpen)} className="bg-orange-500 text-white px-4 py-3 flex items-center justify-between cursor-pointer select-none shadow-sm">
+        <div 
+          onClick={() => {
+            const nextState = !isChatOpen;
+            setIsChatOpen(nextState);
+            if (nextState) {
+              setHasUserClosedChat(false);
+            } else {
+              setHasUserClosedChat(true);
+            }
+          }} 
+          className="bg-orange-500 text-white px-4 py-3 flex items-center justify-between cursor-pointer select-none shadow-sm hover:bg-orange-600 transition"
+        >
           <div className="flex items-center gap-2.5">
             <div className="relative">
               <div className="w-8 h-8 rounded-full bg-white text-orange-600 font-extrabold flex items-center justify-center text-sm shadow-inner">S</div>
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-orange-500 rounded-full"></span>
             </div>
             <div>
-              <h4 className="font-bold text-xs tracking-wide leading-tight">Kasir Soki (Kelompok 3)</h4>
-              <p className="text-[10px] text-orange-100">Aktif &bull; Bayar Cash Langsung</p>
+              <div className="flex items-center gap-1.5">
+                <h4 className="font-bold text-xs tracking-wide leading-tight">Kasir Soki (Kelompok 3)</h4>
+                {totalItems > 0 && (
+                  <span className="bg-white text-orange-600 font-black text-[10px] px-2 py-0.5 rounded-full shadow-xs">
+                    {totalItems} Barang
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] text-orange-100">
+                {isChatOpen 
+                  ? 'Aktif • Bayar Cash Langsung' 
+                  : (totalItems > 0 ? `Total: Rp ${totalPrice.toLocaleString('id-ID')} • Klik untuk buka` : 'Aktif • Bayar Cash Langsung')}
+              </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 text-white">
-            <span className="font-extrabold text-sm bg-orange-600 px-2 py-0.5 rounded-md">{isChatOpen ? '_' : '+'}</span>
-            <button onClick={(e) => { e.stopPropagation(); setIsChatOpen(false); }} className="hover:text-orange-200 font-bold text-sm cursor-pointer">✕</button>
+          <div className="flex items-center gap-1.5 text-white">
+            <button 
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                const nextState = !isChatOpen;
+                setIsChatOpen(nextState);
+                if (nextState) {
+                  setHasUserClosedChat(false);
+                } else {
+                  setHasUserClosedChat(true);
+                }
+              }}
+              className="font-extrabold text-sm bg-orange-600 hover:bg-orange-700 px-2 py-0.5 rounded-md cursor-pointer transition min-w-6 flex items-center justify-center"
+              title={isChatOpen ? 'Minimize' : 'Buka Kasir'}
+            >
+              {isChatOpen ? '_' : '+'}
+            </button>
+            <button 
+              type="button"
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                setIsChatOpen(false); 
+                setHasUserClosedChat(true); 
+              }} 
+              className="hover:text-orange-200 font-bold text-sm cursor-pointer p-1"
+              title="Tutup Kasir"
+            >
+              ✕
+            </button>
           </div>
         </div>
 
