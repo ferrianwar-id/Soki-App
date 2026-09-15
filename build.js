@@ -30,6 +30,22 @@ if (fs.existsSync('dist/index.html')) {
 
 // 5. Salin dist/assets ke root assets
 if (fs.existsSync('dist/assets')) {
+  // Buat fallback kompatibilitas hash lama jika ada file html / cache yang masih meminta hash lama
+  const currentJs = fs.readdirSync('dist/assets').find(f => f.startsWith('index-') && f.endsWith('.js'));
+  const currentCss = fs.readdirSync('dist/assets').find(f => f.startsWith('index-') && f.endsWith('.css'));
+  if (currentJs) {
+    const legacyJsHashes = ['index-CNtKNjAh.js', 'index-B5VpmEBy.js', 'index-CaHqe_b3.js', 'index-BmgzJvoH.js', 'index-IbCGnvs3.js'];
+    for (const legacy of legacyJsHashes) {
+      fs.copyFileSync(`dist/assets/${currentJs}`, `dist/assets/${legacy}`);
+    }
+  }
+  if (currentCss) {
+    const legacyCssHashes = ['index-DngPJedI.css', 'index-BTbLSwO3.css', 'index-BUGJaCdE.css'];
+    for (const legacy of legacyCssHashes) {
+      fs.copyFileSync(`dist/assets/${currentCss}`, `dist/assets/${legacy}`);
+    }
+  }
+
   if (fs.existsSync('assets')) {
     fs.rmSync('assets', { recursive: true, force: true });
   }
