@@ -3,9 +3,10 @@ deployment:
   tasks:
     - export DEPLOYPATH=/home/aapjgfju/public_html/
     - /bin/mkdir -p $DEPLOYPATH
-    - /bin/cp -R * $DEPLOYPATH 2>/dev/null || true
+    - /bin/rm -rf $DEPLOYPATH/assets
+    - /bin/rm -f $DEPLOYPATH/index.html
     - /bin/cp -R dist/* $DEPLOYPATH 2>/dev/null || true
     - /bin/cp -R public/* $DEPLOYPATH 2>/dev/null || true
-    - /bin/cp -f public/.htaccess $DEPLOYPATH/.htaccess 2>/dev/null || true
+    - /bin/cp -f dist/.htaccess $DEPLOYPATH/.htaccess 2>/dev/null || true
     - /bin/chmod 755 $DEPLOYPATH 2>/dev/null || true
     - /bin/chmod 644 $DEPLOYPATH/.htaccess 2>/dev/null || true
