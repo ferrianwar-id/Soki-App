@@ -1159,7 +1159,34 @@ if (strpos($uriPath, '/api/admin/orders') !== false && $method === 'GET') {
     exit;
 }
 
-if (preg_match('#/api/admin/orders/([^/]+)(?:/status)?$#', $uriPath, $matches) && ($method === 'PATCH' || $method === 'PUT' || $method === 'POST')) {
+// 10A. Reset / Kosongkan Seluruh Riwayat Pesanan & Laporan Penjualan (Mulai dari Nol)
+if ((preg_match('#^/api/admin/orders/clear(?:/)?$#i', $uriPath) && ($method === 'POST' || $method === 'DELETE')) ||
+    (preg_match('#^/api/admin/orders(?:/)?$#i', $uriPath) && $method === 'DELETE')) {
+    checkAdminAuth($ADMIN_TOKEN);
+    try {
+        $pdo->exec("DELETE FROM pesanan");
+        // Reset auto increment if any
+        try {
+            $pdo->exec("ALTER TABLE pesanan AUTO_INCREMENT = 1");
+        } catch (\Throwable $e) {}
+    } catch (\Throwable $err) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Gagal mengosongkan data pesanan di database: ' . $err->getMessage()]);
+        exit;
+    }
+
+    $menuItems = fetchDatabaseMenuItems($pdo);
+    echo json_encode([
+        'success' => true,
+        'message' => 'Semua data pesanan kasir dan laporan penjualan di database berhasil dikosongkan. Siap diinput dari awal!',
+        'orders' => [],
+        'menuItems' => $menuItems
+    ]);
+    exit;
+}
+
+// 10B. UPDATE STATUS PESANAN (/api/admin/orders/{id}/status)
+if (preg_match('#^/api/admin/orders/(?!clear)([^/]+)(?:/status)?$#i', $uriPath, $matches) && ($method === 'PATCH' || $method === 'PUT' || $method === 'POST')) {
     checkAdminAuth($ADMIN_TOKEN);
     $orderId = $matches[1];
     $status = $body['status'] ?? 'Selesai';
@@ -1229,7 +1256,8 @@ if (preg_match('#/api/admin/orders/([^/]+)(?:/status)?$#', $uriPath, $matches) &
     exit;
 }
 
-if (preg_match('#/api/admin/orders/([^/]+)$#', $uriPath, $matches) && $method === 'DELETE') {
+// 10C. DELETE SINGLE ORDER (/api/admin/orders/{id})
+if (preg_match('#^/api/admin/orders/(?!clear)([^/]+)$#i', $uriPath, $matches) && $method === 'DELETE') {
     checkAdminAuth($ADMIN_TOKEN);
     $orderId = $matches[1];
 
@@ -1273,32 +1301,6 @@ if (preg_match('#/api/admin/orders/([^/]+)$#', $uriPath, $matches) && $method ==
 
     $menuItems = fetchDatabaseMenuItems($pdo);
     echo json_encode(['success' => true, 'orderId' => $orderId, 'menuItems' => $menuItems]);
-    exit;
-}
-
-// Reset / Kosongkan Seluruh Riwayat Pesanan & Laporan Penjualan (Mulai dari Nol)
-if ((preg_match('#/api/admin/orders/clear$#', $uriPath) && ($method === 'POST' || $method === 'DELETE')) ||
-    (preg_match('#/api/admin/orders$#', $uriPath) && $method === 'DELETE')) {
-    checkAdminAuth($ADMIN_TOKEN);
-    try {
-        $pdo->exec("DELETE FROM pesanan");
-        // Reset auto increment if any
-        try {
-            $pdo->exec("ALTER TABLE pesanan AUTO_INCREMENT = 1");
-        } catch (\Throwable $e) {}
-    } catch (\Throwable $err) {
-        http_response_code(500);
-        echo json_encode(['error' => 'Gagal mengosongkan data pesanan di database: ' . $err->getMessage()]);
-        exit;
-    }
-
-    $menuItems = fetchDatabaseMenuItems($pdo);
-    echo json_encode([
-        'success' => true,
-        'message' => 'Semua data pesanan kasir dan laporan penjualan di database berhasil dikosongkan. Siap diinput dari awal!',
-        'orders' => [],
-        'menuItems' => $menuItems
-    ]);
     exit;
 }
 

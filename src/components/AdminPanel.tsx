@@ -1483,7 +1483,7 @@ export default function AdminPanel({
 
   // Eksekusi Kosongkan Semua Pesanan & Laporan Penjualan pada Database (Mulai dari Nol)
   const handleExecuteClearOrders = async () => {
-    // 1. Eksekusi instan seketika pada UI & local storage tanpa loading lambat
+    // 1. Eksekusi instan seketika pada UI & local storage
     setOrders([]);
     if (typeof window !== 'undefined') {
       try {
@@ -1493,18 +1493,41 @@ export default function AdminPanel({
     setClearOrdersConfirm({ isOpen: false, isLoading: false });
     showStatus("✨ Seluruh riwayat pesanan dan data laporan penjualan berhasil dikosongkan. Siap input dari awal!", "success");
 
-    // 2. Kirim update ke server di background
+    // 2. Kirim penghapusan permanen ke database server
     try {
       const effectiveToken = adminToken || (typeof window !== 'undefined' ? localStorage.getItem('soki_admin_token') : '') || 'soki_admin_secret_auth_token_99218';
-      await fetch('/api/admin/orders/clear', {
+      let res = await fetch('/api/admin/orders/clear', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${effectiveToken}`,
           'Content-Type': 'application/json'
         }
       });
+
+      if (!res.ok) {
+        res = await fetch('/api/admin/orders', {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${effectiveToken}`,
+            'Content-Type': 'application/json'
+          }
+        });
+      }
+
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setOrders([]);
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.setItem('soki_orders_cache', JSON.stringify([]));
+          } catch {}
+        }
+        if (data.menuItems && Array.isArray(data.menuItems) && onUpdateMenuItems) {
+          onUpdateMenuItems(data.menuItems);
+        }
+      }
     } catch (err: any) {
-      console.warn("Background clear orders sync:", err.message);
+      console.warn("Clear orders database sync notice:", err.message);
     }
   };
 
