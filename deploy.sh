@@ -1,5 +1,7 @@
 #!/bin/bash
 POSSIBLE_TARGETS=(
+  "/home/aapjgfju/Soki-App"
+  "${HOME}/Soki-App"
   "$DEPLOYPATH"
   "${HOME}/soki-app.digipassplatinum.my.id"
   "${HOME}/public_html/soki-app"

@@ -1,6 +1,16 @@
 ---
 deployment:
   tasks:
-    - /bin/bash deploy.sh
+    - export DEPLOYPATH=/home/aapjgfju/Soki-App
+    - /bin/mkdir -p $DEPLOYPATH
+    - /bin/cp -rf dist/* $DEPLOYPATH/ 2>/dev/null || true
+    - /bin/cp -rf assets $DEPLOYPATH/ 2>/dev/null || true
+    - /bin/cp -rf public/* $DEPLOYPATH/ 2>/dev/null || true
+    - /bin/cp -f index.html $DEPLOYPATH/index.html 2>/dev/null || true
+    - /bin/cp -f api.php $DEPLOYPATH/api.php 2>/dev/null || true
+    - /bin/cp -f .htaccess $DEPLOYPATH/.htaccess 2>/dev/null || true
+    - /bin/chmod 755 $DEPLOYPATH 2>/dev/null || true
+    - /bin/chmod 644 $DEPLOYPATH/.htaccess 2>/dev/null || true
+    - /bin/bash deploy.sh 2>/dev/null || true
 
 
