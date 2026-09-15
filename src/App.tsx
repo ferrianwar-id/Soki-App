@@ -54,11 +54,7 @@ export default function App() {
         if (cached) {
           const parsed = JSON.parse(cached);
           if (parsed && parsed.siteSettings) {
-            const settings = parsed.siteSettings;
-            if (settings.storeSchedule && settings.storeSchedule.statusMode !== 'force_closed') {
-              settings.storeSchedule.statusMode = 'force_open';
-            }
-            return settings;
+            return parsed.siteSettings;
           }
         }
       } catch {}
@@ -263,9 +259,6 @@ export default function App() {
 
         if (data.siteSettings) {
           const incomingSettings = data.siteSettings;
-          if (incomingSettings.storeSchedule && incomingSettings.storeSchedule.statusMode !== 'force_closed') {
-            incomingSettings.storeSchedule.statusMode = 'force_open';
-          }
           setSiteSettings(incomingSettings);
           cacheToSave.siteSettings = incomingSettings;
           shouldUpdateCache = true;

@@ -376,24 +376,21 @@ if (strpos($uriPath, '/api/state') !== false && $method === 'GET') {
                 $siteSettings['maintenance'] = json_decode($rowSettings['maintenance_json'] ?? '{"enabled":false}', true);
                 $loadedSched = json_decode($rowSettings['jadwal_toko_json'] ?? ($rowSettings['schedule_json'] ?? 'null'), true);
                 if ($loadedSched && is_array($loadedSched)) {
-                    if (($loadedSched['statusMode'] ?? '') !== 'force_closed') {
-                        $loadedSched['statusMode'] = 'force_open';
-                    }
                     $siteSettings['storeSchedule'] = $loadedSched;
                 } else {
                     $siteSettings['storeSchedule'] = [
-                        'statusMode' => 'force_open',
+                        'statusMode' => 'auto',
                         'closedTitle' => 'Toko Sedang Tutup',
                         'closedMessage' => 'Halo! Saat ini toko SOKI sedang tutup dan akan buka kembali sesuai jadwal operasional.',
                         'allowPreorderWhatsApp' => false,
                         'weeklySchedule' => [
-                            ['day' => 'monday', 'dayName' => 'Senin', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
-                            ['day' => 'tuesday', 'dayName' => 'Selasa', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
-                            ['day' => 'wednesday', 'dayName' => 'Rabu', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
-                            ['day' => 'thursday', 'dayName' => 'Kamis', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
-                            ['day' => 'friday', 'dayName' => 'Jumat', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
-                            ['day' => 'saturday', 'dayName' => 'Sabtu', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
-                            ['day' => 'sunday', 'dayName' => 'Minggu', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59']
+                            ['day' => 'monday', 'dayName' => 'Senin', 'isOpen' => true, 'openTime' => '08:00', 'closeTime' => '17:00'],
+                            ['day' => 'tuesday', 'dayName' => 'Selasa', 'isOpen' => true, 'openTime' => '08:00', 'closeTime' => '17:00'],
+                            ['day' => 'wednesday', 'dayName' => 'Rabu', 'isOpen' => true, 'openTime' => '07:30', 'closeTime' => '17:30'],
+                            ['day' => 'thursday', 'dayName' => 'Kamis', 'isOpen' => true, 'openTime' => '08:00', 'closeTime' => '17:00'],
+                            ['day' => 'friday', 'dayName' => 'Jumat', 'isOpen' => true, 'openTime' => '08:00', 'closeTime' => '17:00'],
+                            ['day' => 'saturday', 'dayName' => 'Sabtu', 'isOpen' => true, 'openTime' => '08:00', 'closeTime' => '15:00'],
+                            ['day' => 'sunday', 'dayName' => 'Minggu', 'isOpen' => false, 'openTime' => '08:00', 'closeTime' => '15:00']
                         ]
                     ];
                 }
