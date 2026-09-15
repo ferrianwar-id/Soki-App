@@ -9,8 +9,14 @@ if (fs.existsSync('index.template.html')) {
   fs.copyFileSync('index.template.html', 'index.html');
 }
 
-// 2. Jalankan vite build & esbuild
-execSync('vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs', { stdio: 'inherit' });
+// 2. Jalankan vite build & esbuild dengan PATH ke node_modules/.bin
+const binPath = path.resolve('node_modules/.bin');
+const env = { ...process.env, PATH: `${binPath}:${process.env.PATH}` };
+
+execSync('vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs', { 
+  stdio: 'inherit',
+  env 
+});
 
 // 3. Salin api.php ke dist/ dan root
 fs.copyFileSync('public/api.php', 'dist/api.php');

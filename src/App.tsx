@@ -53,7 +53,13 @@ export default function App() {
         const cached = localStorage.getItem('soki_state_cache');
         if (cached) {
           const parsed = JSON.parse(cached);
-          if (parsed && parsed.siteSettings) return parsed.siteSettings;
+          if (parsed && parsed.siteSettings) {
+            const settings = parsed.siteSettings;
+            if (settings.storeSchedule && settings.storeSchedule.statusMode !== 'force_closed') {
+              settings.storeSchedule.statusMode = 'force_open';
+            }
+            return settings;
+          }
         }
       } catch {}
     }
@@ -255,8 +261,12 @@ export default function App() {
         const cacheToSave: any = {};
 
         if (data.siteSettings) {
-          setSiteSettings(data.siteSettings);
-          cacheToSave.siteSettings = data.siteSettings;
+          const incomingSettings = data.siteSettings;
+          if (incomingSettings.storeSchedule && incomingSettings.storeSchedule.statusMode !== 'force_closed') {
+            incomingSettings.storeSchedule.statusMode = 'force_open';
+          }
+          setSiteSettings(incomingSettings);
+          cacheToSave.siteSettings = incomingSettings;
           shouldUpdateCache = true;
         }
         if (Array.isArray(data.heroCards) && data.heroCards.length > 0) {

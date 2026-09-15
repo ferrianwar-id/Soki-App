@@ -1,12 +1,14 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/aapjgfju/public_html/
+    - export DEPLOYPATH=${DEPLOYPATH:-$HOME/public_html}
     - /bin/mkdir -p $DEPLOYPATH
-    - /bin/rm -rf $DEPLOYPATH/assets
-    - /bin/rm -f $DEPLOYPATH/index.html
-    - /bin/cp -R dist/* $DEPLOYPATH 2>/dev/null || true
-    - /bin/cp -R public/* $DEPLOYPATH 2>/dev/null || true
-    - /bin/cp -f dist/.htaccess $DEPLOYPATH/.htaccess 2>/dev/null || true
+    - /bin/cp -rf dist/* $DEPLOYPATH/ 2>/dev/null || true
+    - /bin/cp -rf assets $DEPLOYPATH/ 2>/dev/null || true
+    - /bin/cp -rf public/* $DEPLOYPATH/ 2>/dev/null || true
+    - /bin/cp -f index.html $DEPLOYPATH/index.html 2>/dev/null || true
+    - /bin/cp -f api.php $DEPLOYPATH/api.php 2>/dev/null || true
+    - /bin/cp -f .htaccess $DEPLOYPATH/.htaccess 2>/dev/null || true
     - /bin/chmod 755 $DEPLOYPATH 2>/dev/null || true
     - /bin/chmod 644 $DEPLOYPATH/.htaccess 2>/dev/null || true
+

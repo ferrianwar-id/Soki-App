@@ -374,7 +374,29 @@ if (strpos($uriPath, '/api/state') !== false && $method === 'GET') {
                 $siteSettings['googleDriveProductFolderId'] = $rowSettings['folder_produk_id'] ?? '1UWYqogBiwBhd2TuJei-ris2o8jtt4l5n';
                 $siteSettings['googleDriveCardFolderId'] = $rowSettings['folder_landing_id'] ?? '14MtwwTYN-98UHxlIIaYMcWGC_iUZomOn';
                 $siteSettings['maintenance'] = json_decode($rowSettings['maintenance_json'] ?? '{"enabled":false}', true);
-                $siteSettings['storeSchedule'] = json_decode($rowSettings['jadwal_toko_json'] ?? ($rowSettings['schedule_json'] ?? 'null'), true);
+                $loadedSched = json_decode($rowSettings['jadwal_toko_json'] ?? ($rowSettings['schedule_json'] ?? 'null'), true);
+                if ($loadedSched && is_array($loadedSched)) {
+                    if (($loadedSched['statusMode'] ?? '') !== 'force_closed') {
+                        $loadedSched['statusMode'] = 'force_open';
+                    }
+                    $siteSettings['storeSchedule'] = $loadedSched;
+                } else {
+                    $siteSettings['storeSchedule'] = [
+                        'statusMode' => 'force_open',
+                        'closedTitle' => 'Toko Sedang Tutup',
+                        'closedMessage' => 'Halo! Saat ini toko SOKI sedang tutup dan akan buka kembali sesuai jadwal operasional.',
+                        'allowPreorderWhatsApp' => false,
+                        'weeklySchedule' => [
+                            ['day' => 'monday', 'dayName' => 'Senin', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
+                            ['day' => 'tuesday', 'dayName' => 'Selasa', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
+                            ['day' => 'wednesday', 'dayName' => 'Rabu', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
+                            ['day' => 'thursday', 'dayName' => 'Kamis', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
+                            ['day' => 'friday', 'dayName' => 'Jumat', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
+                            ['day' => 'saturday', 'dayName' => 'Sabtu', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59'],
+                            ['day' => 'sunday', 'dayName' => 'Minggu', 'isOpen' => true, 'openTime' => '00:00', 'closeTime' => '23:59']
+                        ]
+                    ];
+                }
             }
 
             $stmtCards = $pdo->query("SELECT * FROM kartu_beranda ORDER BY urutan ASC");
