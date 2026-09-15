@@ -38,10 +38,6 @@
   RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # If dist/index.html exists, fallback to dist/index.html, otherwise index.html
-  RewriteCond %{DOCUMENT_ROOT}/dist/index.html -f
-  RewriteRule ^ dist/index.html [L]
-
   # SPA Fallback to index.html
   RewriteRule ^ index.html [L]
 </IfModule>
