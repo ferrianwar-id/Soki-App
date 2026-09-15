@@ -2050,7 +2050,7 @@ app.post("/api/upload", async (req, res) => {
   };
 
   // Quick Stock Update Endpoint
-  app.patch("/api/admin/menu/:id/stock", requireAdmin, async (req, res) => {
+  const handleStockUpdateRoute = async (req: express.Request, res: express.Response) => {
     try {
       const { id } = req.params;
       const { stock } = req.body;
@@ -2088,10 +2088,14 @@ app.post("/api/upload", async (req, res) => {
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
-  });
+  };
+
+  app.patch("/api/admin/menu/:id/stock", requireAdmin, handleStockUpdateRoute);
+  app.post("/api/admin/menu/:id/stock", requireAdmin, handleStockUpdateRoute);
+  app.put("/api/admin/menu/:id/stock", requireAdmin, handleStockUpdateRoute);
 
   // Restock Product Endpoint (Menambah stok yang habis tanpa harus input ulang produk)
-  app.post("/api/admin/menu/:id/restock", requireAdmin, async (req, res) => {
+  const handleRestockRoute = async (req: express.Request, res: express.Response) => {
     try {
       const { id } = req.params;
       const { addStock, stock } = req.body;
@@ -2129,7 +2133,10 @@ app.post("/api/upload", async (req, res) => {
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
-  });
+  };
+
+  app.post("/api/admin/menu/:id/restock", requireAdmin, handleRestockRoute);
+  app.patch("/api/admin/menu/:id/restock", requireAdmin, handleRestockRoute);
 
   // Reset Single Product Stock to Zero (Kembalikan stok ke 0 tanpa hapus produk)
   app.post("/api/admin/menu/:id/reset-stock", requireAdmin, async (req, res) => {

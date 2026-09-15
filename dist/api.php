@@ -464,32 +464,40 @@ if ((preg_match('#^/api/admin/(?:menu|products)/([^/]+)/delete$#i', $uriPath, $m
 }
 
 // 3B. RESTOCK PRODUCT (/api/admin/menu/{id}/restock)
-if (preg_match('#^/api/admin/(?:menu|products)/([^/]+)/restock$#i', $uriPath, $matches) && ($method === 'POST' || $method === 'PATCH')) {
+if (preg_match('#^/api/admin/(?:menu|products)/([^/]+)/restock$#i', $uriPath, $matches) && ($method === 'POST' || $method === 'PATCH' || $method === 'PUT')) {
     checkAdminAuth($ADMIN_TOKEN);
-    $productId = $matches[1];
+    $productId = urldecode($matches[1]);
     $addStock = max(1, (int)($body['addStock'] ?? $body['stock'] ?? 10));
 
-    $sel = $pdo->prepare("SELECT id, stok, nama FROM menu_produk WHERE id = ?");
+    $sel = $pdo->prepare("SELECT id, stok, nama FROM menu_produk WHERE id = ? LIMIT 1");
     $sel->execute([$productId]);
     $prod = $sel->fetch();
+    
+    if (!$prod) {
+        $sel2 = $pdo->prepare("SELECT id, stok, nama FROM menu_produk WHERE LOWER(TRIM(id)) = LOWER(TRIM(?)) LIMIT 1");
+        $sel2->execute([$productId]);
+        $prod = $sel2->fetch();
+    }
+
     if (!$prod) {
         http_response_code(404);
-        echo json_encode(['error' => 'Produk tidak ditemukan']);
+        echo json_encode(['error' => 'Produk tidak ditemukan di database']);
         exit;
     }
 
+    $actualId = $prod['id'];
     $curStok = isset($prod['stok']) && $prod['stok'] !== null ? (int)$prod['stok'] : 0;
     $newStok = $curStok + $addStock;
 
     // Aktifkan otomatis kembali jika stok bertambah
     $upd = $pdo->prepare("UPDATE menu_produk SET stok = ?, tersedia = 1 WHERE id = ?");
-    $upd->execute([$newStok, $productId]);
+    $upd->execute([$newStok, $actualId]);
 
     $menuItems = fetchDatabaseMenuItems($pdo);
     echo json_encode([
         'success' => true,
         'message' => "Stok {$prod['nama']} berhasil ditambah {$addStock} porsi (total {$newStok} porsi)",
-        'id' => $productId,
+        'id' => $actualId,
         'stock' => $newStok,
         'available' => true,
         'menuItems' => $menuItems

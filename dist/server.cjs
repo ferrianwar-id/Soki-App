@@ -1789,7 +1789,7 @@ async function startServer() {
       res.status(500).json({ error: err.message });
     }
   };
-  app.patch("/api/admin/menu/:id/stock", requireAdmin, async (req, res) => {
+  const handleStockUpdateRoute = async (req, res) => {
     try {
       const { id } = req.params;
       const { stock } = req.body;
@@ -1827,8 +1827,11 @@ async function startServer() {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  });
-  app.post("/api/admin/menu/:id/restock", requireAdmin, async (req, res) => {
+  };
+  app.patch("/api/admin/menu/:id/stock", requireAdmin, handleStockUpdateRoute);
+  app.post("/api/admin/menu/:id/stock", requireAdmin, handleStockUpdateRoute);
+  app.put("/api/admin/menu/:id/stock", requireAdmin, handleStockUpdateRoute);
+  const handleRestockRoute = async (req, res) => {
     try {
       const { id } = req.params;
       const { addStock, stock } = req.body;
@@ -1865,7 +1868,9 @@ async function startServer() {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  });
+  };
+  app.post("/api/admin/menu/:id/restock", requireAdmin, handleRestockRoute);
+  app.patch("/api/admin/menu/:id/restock", requireAdmin, handleRestockRoute);
   app.post("/api/admin/menu/:id/reset-stock", requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
