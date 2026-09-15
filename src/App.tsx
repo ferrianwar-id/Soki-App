@@ -334,11 +334,23 @@ export default function App() {
             const nextSchedStr = JSON.stringify(data.storeSchedule);
 
             if (currentMaintStr !== nextMaintStr || currentSchedStr !== nextSchedStr) {
-              return {
+              const updated = {
                 ...prev,
                 maintenance: data.maintenance !== undefined ? data.maintenance : prev.maintenance,
                 storeSchedule: data.storeSchedule !== undefined ? data.storeSchedule : prev.storeSchedule
               };
+              if (typeof window !== 'undefined') {
+                try {
+                  const cached = localStorage.getItem('soki_state_cache');
+                  const parsed = cached ? JSON.parse(cached) : {};
+                  localStorage.setItem('soki_state_cache', JSON.stringify({
+                    ...parsed,
+                    siteSettings: updated,
+                    lastSyncedAt: Date.now()
+                  }));
+                } catch {}
+              }
+              return updated;
             }
             return prev;
           });
@@ -708,6 +720,21 @@ export default function App() {
     }
   };
 
+  const handleUpdateSettings = (newSettings: SiteSettings) => {
+    setSiteSettings(newSettings);
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('soki_state_cache');
+        const parsed = cached ? JSON.parse(cached) : {};
+        localStorage.setItem('soki_state_cache', JSON.stringify({
+          ...parsed,
+          siteSettings: newSettings,
+          lastSyncedAt: Date.now()
+        }));
+      } catch {}
+    }
+  };
+
   const handleAdminLogout = () => {
     setAdminToken(null);
     localStorage.removeItem('soki_admin_token');
@@ -737,7 +764,7 @@ export default function App() {
         teamMembers={teamMembers}
         onUpdateHeroCards={setHeroCards}
         onUpdateMenuItems={setMenuItems}
-        onUpdateSettings={setSiteSettings}
+        onUpdateSettings={handleUpdateSettings}
         onUpdateTeamMembers={setTeamMembers}
         onPreviewMaintenancePage={() => {
           setIsMaintenanceBypassed(false);

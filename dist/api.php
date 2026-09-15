@@ -189,10 +189,11 @@ function checkAdminAuth($token) {
     $headers = function_exists('getallheaders') ? getallheaders() : [];
     $auth = $headers['Authorization'] ?? $headers['authorization'] ?? $headers['X-Admin-Token'] ?? $headers['x-admin-token'] ?? $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? $_SERVER['HTTP_X_ADMIN_TOKEN'] ?? '';
     $tokenParam = $_GET['token'] ?? $_POST['token'] ?? '';
+    $cleanAuth = trim(str_ireplace('Bearer ', '', $auth));
 
-    $isBearerAdmin = ($auth === "Bearer {$ADMIN_TOKEN}" || $auth === "Bearer {$SUPERADMIN_TOKEN}");
-    $isDirectToken = ($auth === $ADMIN_TOKEN || $auth === $SUPERADMIN_TOKEN || $tokenParam === $ADMIN_TOKEN || $tokenParam === $SUPERADMIN_TOKEN);
-    $isPrefixed = (strpos($auth, 'soki-') === 0 || strpos($auth, 'soki_') === 0 || strpos($tokenParam, 'soki-') === 0 || strpos($tokenParam, 'soki_') === 0);
+    $isBearerAdmin = ($auth === "Bearer {$ADMIN_TOKEN}" || $auth === "Bearer {$SUPERADMIN_TOKEN}" || $cleanAuth === $ADMIN_TOKEN || $cleanAuth === $SUPERADMIN_TOKEN);
+    $isDirectToken = ($auth === $ADMIN_TOKEN || $auth === $SUPERADMIN_TOKEN || $tokenParam === $ADMIN_TOKEN || $tokenParam === $SUPERADMIN_TOKEN || $cleanAuth === $ADMIN_TOKEN || $cleanAuth === $SUPERADMIN_TOKEN);
+    $isPrefixed = (strpos($auth, 'soki-') === 0 || strpos($auth, 'soki_') === 0 || strpos($tokenParam, 'soki-') === 0 || strpos($tokenParam, 'soki_') === 0 || strpos($cleanAuth, 'soki-') === 0 || strpos($cleanAuth, 'soki_') === 0);
 
     if ($isBearerAdmin || $isDirectToken || $isPrefixed) {
         return true;

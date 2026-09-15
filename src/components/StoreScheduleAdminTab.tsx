@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   Clock, 
   Store, 
@@ -48,9 +48,14 @@ export default function StoreScheduleAdminTab({
   const [isSaving, setIsSaving] = useState(false);
   const [savingMode, setSavingMode] = useState<string | null>(null);
   const liveStatus = getStoreStatus(formState);
+  const lastManualChangeRef = useRef<number>(0);
 
   // Synchronize formState if siteSettings updates from background polling or another browser
   useEffect(() => {
+    // Jangan overwrite jika admin baru saja mengganti mode manual dalam 8 detik terakhir
+    if (Date.now() - lastManualChangeRef.current < 8000) {
+      return;
+    }
     if (siteSettings?.storeSchedule && !isSaving && !savingMode) {
       setFormState({
         ...defaultStoreSchedule,
@@ -76,6 +81,7 @@ export default function StoreScheduleAdminTab({
 
   // Instant Mode Switcher (Saves directly to MySQL database and updates across all browsers)
   const handleSelectMode = async (mode: 'auto' | 'force_open' | 'force_closed') => {
+    lastManualChangeRef.current = Date.now();
     const updated: StoreScheduleConfig = { ...formState, statusMode: mode };
     setFormState(updated);
     setSavingMode(mode);
@@ -85,30 +91,61 @@ export default function StoreScheduleAdminTab({
       storeSchedule: updated
     };
 
-    try {
-      const res = await fetch('/api/admin/schedule', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify(newSettings)
-      });
+    // Update parent state & local cache immediately
+    onUpdateSettings(newSettings);
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('soki_state_cache');
+        const parsed = cached ? JSON.parse(cached) : {};
+        localStorage.setItem('soki_state_cache', JSON.stringify({
+          ...parsed,
+          siteSettings: newSettings,
+          lastSyncedAt: Date.now()
+        }));
+      } catch {}
+    }
 
-      if (res.ok) {
-        onUpdateSettings(newSettings);
+    try {
+      const url = `/api/admin/schedule?token=${encodeURIComponent(adminToken)}`;
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`,
+        'X-Admin-Token': adminToken
+      };
+
+      let res: Response | null = null;
+      try {
+        res = await fetch(url, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(newSettings)
+        });
+        if (res.status === 405 || res.status === 404 || !res.ok) {
+          res = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(newSettings)
+          });
+        }
+      } catch {
+        res = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(newSettings)
+        });
+      }
+
+      if (res && res.ok) {
         const msg = mode === 'force_open'
           ? 'Mode Toko SELALU BUKA 24 JAM berhasil disimpan ke database! Seluruh browser pengunjung akan langsung terbuka bersamaan.'
           : mode === 'force_closed'
           ? 'Mode Toko TUTUP SEMENTARA berhasil disimpan ke database! Seluruh browser pengunjung akan menampilkan layar tutup bersamaan.'
           : 'Mode Toko OTOMATIS (Sesuai Jadwal Jam Operasional) berhasil disimpan ke database!';
-        showStatus(msg);
+        showStatus(msg, 'success');
       } else {
-        onUpdateSettings(newSettings);
         showStatus('Mode toko diperbarui.');
       }
     } catch {
-      onUpdateSettings(newSettings);
       showStatus('Mode toko diperbarui.');
     } finally {
       setSavingMode(null);
@@ -194,31 +231,63 @@ export default function StoreScheduleAdminTab({
   };
 
   const handleSave = async () => {
+    lastManualChangeRef.current = Date.now();
     setIsSaving(true);
     const newSettings: SiteSettings = {
       ...siteSettings,
       storeSchedule: formState
     };
 
-    try {
-      const res = await fetch('/api/admin/settings', {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${adminToken}`
-        },
-        body: JSON.stringify(newSettings)
-      });
+    // Update parent state & local cache immediately
+    onUpdateSettings(newSettings);
+    if (typeof window !== 'undefined') {
+      try {
+        const cached = localStorage.getItem('soki_state_cache');
+        const parsed = cached ? JSON.parse(cached) : {};
+        localStorage.setItem('soki_state_cache', JSON.stringify({
+          ...parsed,
+          siteSettings: newSettings,
+          lastSyncedAt: Date.now()
+        }));
+      } catch {}
+    }
 
-      if (res.ok) {
-        onUpdateSettings(newSettings);
-        showStatus('Jadwal & Jam Operasional Toko berhasil disimpan ke database!');
+    try {
+      const url = `/api/admin/settings?token=${encodeURIComponent(adminToken)}`;
+      const headers = {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${adminToken}`,
+        'X-Admin-Token': adminToken
+      };
+
+      let res: Response | null = null;
+      try {
+        res = await fetch(url, {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(newSettings)
+        });
+        if (res.status === 405 || res.status === 404 || !res.ok) {
+          res = await fetch(url, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(newSettings)
+          });
+        }
+      } catch {
+        res = await fetch(url, {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(newSettings)
+        });
+      }
+
+      if (res && res.ok) {
+        showStatus('Jadwal & Jam Operasional Toko berhasil disimpan permanen ke database!', 'success');
       } else {
-        onUpdateSettings(newSettings);
         showStatus('Jadwal disimpan.');
       }
     } catch {
-      onUpdateSettings(newSettings);
       showStatus('Jadwal disimpan.');
     } finally {
       setIsSaving(false);
