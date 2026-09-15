@@ -419,29 +419,52 @@ if (strpos($uriPath, '/api/state') !== false && $method === 'GET') {
     exit;
 }
 
-// 3. QUICK STOCK UPDATE (/api/admin/menu/{id}/stock)
-if (preg_match('#/api/admin/menu/([^/]+)/stock#', $uriPath, $matches) && ($method === 'PATCH' || $method === 'PUT' || $method === 'POST')) {
+// 3A. PRODUCT DELETE (/api/admin/menu/{id} or /api/admin/products/{id})
+if ((preg_match('#^/api/admin/(?:menu|products)/([^/]+)/delete$#i', $uriPath, $matches) && $method === 'POST') ||
+    (preg_match('#^/api/admin/(?:menu|products)/([^/]+)$#i', $uriPath, $matches) && $method === 'DELETE')) {
     checkAdminAuth($ADMIN_TOKEN);
-    $productId = $matches[1];
-    $newStock = isset($body['stock']) && $body['stock'] !== '' && $body['stock'] !== null ? max(0, (int)$body['stock']) : null;
-    $available = $newStock !== null ? ($newStock > 0 ? 1 : 0) : 1;
+    $id = $matches[1];
 
-    $stmt = $pdo->prepare("UPDATE menu_produk SET stok = ?, tersedia = ? WHERE id = ?");
-    $stmt->execute([$newStock, $available, $productId]);
+    // Ambil gambar produk sebelum dihapus
+    $imgUrl = '';
+    try {
+        $imgStmt = $pdo->prepare("SELECT gambar_url FROM menu_produk WHERE id = ?");
+        $imgStmt->execute([$id]);
+        $row = $imgStmt->fetch();
+        if ($row && !empty($row['gambar_url'])) {
+            $imgUrl = trim($row['gambar_url']);
+        }
+    } catch (Exception $e) {}
+
+    // Hapus baris dari database MySQL
+    try {
+        $stmt = $pdo->prepare("DELETE FROM menu_produk WHERE id = ?");
+        $stmt->execute([$id]);
+    } catch (Exception $e) {
+        http_response_code(500);
+        echo json_encode(['error' => 'Gagal menghapus dari database: ' . $e->getMessage()]);
+        exit;
+    }
+
+    // Hapus file (lama) jika masih di server lokal
+    if (!empty($imgUrl) && strpos($imgUrl, "/uploads/") !== false) {
+        $localFilePath = __DIR__ . $imgUrl;
+        if (file_exists($localFilePath)) {
+            @unlink($localFilePath);
+        }
+    }
 
     $menuItems = fetchDatabaseMenuItems($pdo);
     echo json_encode([
         'success' => true, 
-        'id' => $productId, 
-        'stock' => $newStock, 
-        'available' => (bool)$available,
+        'deletedId' => $id,
         'menuItems' => $menuItems
     ]);
     exit;
 }
 
 // 3B. RESTOCK PRODUCT (/api/admin/menu/{id}/restock)
-if (preg_match('#/api/admin/menu/([^/]+)/restock#', $uriPath, $matches) && ($method === 'POST' || $method === 'PATCH')) {
+if (preg_match('#^/api/admin/(?:menu|products)/([^/]+)/restock$#i', $uriPath, $matches) && ($method === 'POST' || $method === 'PATCH')) {
     checkAdminAuth($ADMIN_TOKEN);
     $productId = $matches[1];
     $addStock = max(1, (int)($body['addStock'] ?? $body['stock'] ?? 10));
@@ -475,7 +498,7 @@ if (preg_match('#/api/admin/menu/([^/]+)/restock#', $uriPath, $matches) && ($met
 }
 
 // 3C. RESET SINGLE PRODUCT STOCK TO ZERO (/api/admin/menu/{id}/reset-stock)
-if (preg_match('#/api/admin/menu/([^/]+)/reset-stock#', $uriPath, $matches) && ($method === 'POST' || $method === 'PATCH')) {
+if (preg_match('#^/api/admin/(?:menu|products)/([^/]+)/reset-stock$#i', $uriPath, $matches) && ($method === 'POST' || $method === 'PATCH')) {
     checkAdminAuth($ADMIN_TOKEN);
     $productId = $matches[1];
 
@@ -505,7 +528,7 @@ if (preg_match('#/api/admin/menu/([^/]+)/reset-stock#', $uriPath, $matches) && (
 }
 
 // 3D. RESET ALL PRODUCTS STOCK TO ZERO (/api/admin/menu/reset-all-stocks)
-if (strpos($uriPath, '/api/admin/menu/reset-all-stocks') !== false && ($method === 'POST' || $method === 'PATCH')) {
+if ((preg_match('#^/api/admin/(?:menu|products)/reset-all-stocks$#i', $uriPath)) && ($method === 'POST' || $method === 'PATCH')) {
     checkAdminAuth($ADMIN_TOKEN);
 
     // Setel semua stok ke 0 tanpa menghapus produk apapun
@@ -520,85 +543,29 @@ if (strpos($uriPath, '/api/admin/menu/reset-all-stocks') !== false && ($method =
     exit;
 }
 
-// 4. PRODUCT CREATE (/api/admin/menu or /api/admin/products)
-if ((strpos($uriPath, '/api/admin/menu') !== false || strpos($uriPath, '/api/admin/products') !== false) && $method === 'POST' && !strpos($uriPath, '/stock')) {
+// 3E. QUICK STOCK UPDATE (/api/admin/menu/{id}/stock)
+if (preg_match('#^/api/admin/(?:menu|products)/([^/]+)/stock$#i', $uriPath, $matches) && ($method === 'PATCH' || $method === 'PUT' || $method === 'POST')) {
     checkAdminAuth($ADMIN_TOKEN);
-    $id = $body['id'] ?? (strtolower(preg_replace('/[^a-z0-9]+/i', '-', $body['name'] ?? 'menu')) . '-' . substr(time(), -4));
-    $name = $body['name'] ?? 'Produk Baru';
-    $category = $body['category'] ?? 'snack';
-    $price = (int)($body['price'] ?? 0);
-    $costPrice = (int)($body['costPrice'] ?? 0);
-    $stock = isset($body['stock']) && $body['stock'] !== '' && $body['stock'] !== null ? max(0, (int)$body['stock']) : null;
-    $description = $body['description'] ?? '';
-    $badge = $body['badge'] ?? 'Menu Baru';
-    $imageUrl = $body['imageUrl'] ?? '';
-    $variants = json_encode($body['variants'] ?? ['Original']);
-    $keywords = ($body['keywords'] ?? '') ?: "{$name} {$category}";
-    $available = isset($body['available']) ? ($body['available'] ? 1 : 0) : ($stock !== null ? ($stock > 0 ? 1 : 0) : 1);
-    $promoType = ($body['promoType'] ?? '') === 'buy_x_get_y' ? 'buy_x_get_y' : 'bundle_price';
-    $promoInfo = $body['promoInfo'] ?? '';
-    $promoPrice = isset($body['promoPrice']) && $body['promoPrice'] !== '' ? (int)$body['promoPrice'] : null;
-    $promoMinQty = isset($body['promoMinQty']) && $body['promoMinQty'] !== '' ? (int)$body['promoMinQty'] : null;
-    $promoFreeQty = isset($body['promoFreeQty']) && $body['promoFreeQty'] !== '' ? (int)$body['promoFreeQty'] : null;
-    $promoActive = !empty($body['promoActive']) ? 1 : 0;
+    $productId = $matches[1];
+    $newStock = isset($body['stock']) && $body['stock'] !== '' && $body['stock'] !== null ? max(0, (int)$body['stock']) : null;
+    $available = $newStock !== null ? ($newStock > 0 ? 1 : 0) : 1;
 
-    try {
-        $stmt = $pdo->prepare("
-            INSERT INTO menu_produk (id, kategori, nama, deskripsi, harga, harga_modal, stok, badge, gambar_url, varian_json, kata_kunci, tersedia, info_promo, harga_promo, min_qty_promo, promo_tipe, gratis_qty_promo, promo_aktif, dibuat_pada)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-            ON DUPLICATE KEY UPDATE
-              kategori = VALUES(kategori),
-              nama = VALUES(nama),
-              deskripsi = VALUES(deskripsi),
-              harga = VALUES(harga),
-              harga_modal = VALUES(harga_modal),
-              stok = VALUES(stok),
-              badge = VALUES(badge),
-              gambar_url = VALUES(gambar_url),
-              varian_json = VALUES(varian_json),
-              kata_kunci = VALUES(kata_kunci),
-              tersedia = VALUES(tersedia),
-              info_promo = VALUES(info_promo),
-              harga_promo = VALUES(harga_promo),
-              min_qty_promo = VALUES(min_qty_promo),
-              promo_tipe = VALUES(promo_tipe),
-              gratis_qty_promo = VALUES(gratis_qty_promo),
-              promo_aktif = VALUES(promo_aktif)
-        ");
-        $stmt->execute([$id, $category, $name, $description, $price, $costPrice, $stock, $badge, $imageUrl, $variants, $keywords, $available, $promoInfo, $promoPrice, $promoMinQty, $promoType, $promoFreeQty, $promoActive]);
-    } catch (Throwable $e) {
-        http_response_code(500);
-        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
-        exit;
-    }
+    $stmt = $pdo->prepare("UPDATE menu_produk SET stok = ?, tersedia = ? WHERE id = ?");
+    $stmt->execute([$newStock, $available, $productId]);
 
-    $savedProduct = [
-        'id' => $id,
-        'category' => $category,
-        'name' => $name,
-        'description' => $description,
-        'price' => $price,
-        'costPrice' => $costPrice,
-        'stock' => $stock,
-        'badge' => $badge,
-        'imageUrl' => $imageUrl,
-        'variants' => json_decode($variants, true),
-        'keywords' => $keywords,
+    $menuItems = fetchDatabaseMenuItems($pdo);
+    echo json_encode([
+        'success' => true, 
+        'id' => $productId, 
+        'stock' => $newStock, 
         'available' => (bool)$available,
-        'promoType' => $promoType,
-        'promoInfo' => $promoInfo,
-        'promoPrice' => $promoPrice,
-        'promoMinQty' => $promoMinQty,
-        'promoFreeQty' => $promoFreeQty,
-        'promoActive' => (bool)$promoActive
-    ];
-
-    echo json_encode(['success' => true, 'product' => $savedProduct]);
+        'menuItems' => $menuItems
+    ]);
     exit;
 }
 
-// 5. PRODUCT UPDATE (/api/admin/menu/{id} or /api/admin/products/{id})
-if ((preg_match('#/api/admin/menu/([^/]+)#', $uriPath, $matches) || preg_match('#/api/admin/products/([^/]+)#', $uriPath, $matches)) && ($method === 'PUT' || $method === 'POST')) {
+// 3F. PRODUCT UPDATE (/api/admin/menu/{id} or /api/admin/products/{id})
+if (preg_match('#^/api/admin/(?:menu|products)/([^/]+)$#i', $uriPath, $matches) && ($method === 'PUT' || $method === 'POST')) {
     checkAdminAuth($ADMIN_TOKEN);
     $id = $matches[1];
     $name = $body['name'] ?? '';
@@ -670,47 +637,93 @@ if ((preg_match('#/api/admin/menu/([^/]+)#', $uriPath, $matches) || preg_match('
         'promoActive' => (bool)$promoActive
     ];
 
-    echo json_encode(['success' => true, 'product' => $savedProduct]);
+    $menuItems = fetchDatabaseMenuItems($pdo);
+    echo json_encode([
+        'success' => true, 
+        'product' => $savedProduct,
+        'menuItems' => $menuItems
+    ]);
     exit;
 }
 
-// 6. PRODUCT DELETE (/api/admin/menu/{id} or /api/admin/products/{id})
-if ((preg_match('#/api/admin/menu/([^/]+)(?:/delete)?#', $uriPath, $matches) || preg_match('#/api/admin/products/([^/]+)(?:/delete)?#', $uriPath, $matches)) && ($method === 'DELETE' || $method === 'POST')) {
+// 4. PRODUCT CREATE (/api/admin/menu or /api/admin/products)
+if ((preg_match('#^/api/admin/(?:menu|products)/?$#i', $uriPath)) && $method === 'POST') {
     checkAdminAuth($ADMIN_TOKEN);
-    $id = $matches[1];
+    $id = $body['id'] ?? (strtolower(preg_replace('/[^a-z0-9]+/i', '-', $body['name'] ?? 'menu')) . '-' . substr(time(), -4));
+    $name = $body['name'] ?? 'Produk Baru';
+    $category = $body['category'] ?? 'snack';
+    $price = (int)($body['price'] ?? 0);
+    $costPrice = (int)($body['costPrice'] ?? 0);
+    $stock = isset($body['stock']) && $body['stock'] !== '' && $body['stock'] !== null ? max(0, (int)$body['stock']) : null;
+    $description = $body['description'] ?? '';
+    $badge = $body['badge'] ?? 'Menu Baru';
+    $imageUrl = $body['imageUrl'] ?? '';
+    $variants = json_encode($body['variants'] ?? ['Original']);
+    $keywords = ($body['keywords'] ?? '') ?: "{$name} {$category}";
+    $available = isset($body['available']) ? ($body['available'] ? 1 : 0) : ($stock !== null ? ($stock > 0 ? 1 : 0) : 1);
+    $promoType = ($body['promoType'] ?? '') === 'buy_x_get_y' ? 'buy_x_get_y' : 'bundle_price';
+    $promoInfo = $body['promoInfo'] ?? '';
+    $promoPrice = isset($body['promoPrice']) && $body['promoPrice'] !== '' ? (int)$body['promoPrice'] : null;
+    $promoMinQty = isset($body['promoMinQty']) && $body['promoMinQty'] !== '' ? (int)$body['promoMinQty'] : null;
+    $promoFreeQty = isset($body['promoFreeQty']) && $body['promoFreeQty'] !== '' ? (int)$body['promoFreeQty'] : null;
+    $promoActive = !empty($body['promoActive']) ? 1 : 0;
 
-    // Ambil gambar produk sebelum dihapus
-    $imgUrl = '';
     try {
-        $imgStmt = $pdo->prepare("SELECT gambar_url FROM menu_produk WHERE id = ?");
-        $imgStmt->execute([$id]);
-        $row = $imgStmt->fetch();
-        if ($row && !empty($row['gambar_url'])) {
-            $imgUrl = trim($row['gambar_url']);
-        }
-    } catch (Exception $e) {}
-
-    // Hapus baris dari database MySQL
-    try {
-        $stmt = $pdo->prepare("DELETE FROM menu_produk WHERE id = ?");
-        $stmt->execute([$id]);
-    } catch (Exception $e) {
+        $stmt = $pdo->prepare("
+            INSERT INTO menu_produk (id, kategori, nama, deskripsi, harga, harga_modal, stok, badge, gambar_url, varian_json, kata_kunci, tersedia, info_promo, harga_promo, min_qty_promo, promo_tipe, gratis_qty_promo, promo_aktif, dibuat_pada)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE
+              kategori = VALUES(kategori),
+              nama = VALUES(nama),
+              deskripsi = VALUES(deskripsi),
+              harga = VALUES(harga),
+              harga_modal = VALUES(harga_modal),
+              stok = VALUES(stok),
+              badge = VALUES(badge),
+              gambar_url = VALUES(gambar_url),
+              varian_json = VALUES(varian_json),
+              kata_kunci = VALUES(kata_kunci),
+              tersedia = VALUES(tersedia),
+              info_promo = VALUES(info_promo),
+              harga_promo = VALUES(harga_promo),
+              min_qty_promo = VALUES(min_qty_promo),
+              promo_tipe = VALUES(promo_tipe),
+              gratis_qty_promo = VALUES(gratis_qty_promo),
+              promo_aktif = VALUES(promo_aktif)
+        ");
+        $stmt->execute([$id, $category, $name, $description, $price, $costPrice, $stock, $badge, $imageUrl, $variants, $keywords, $available, $promoInfo, $promoPrice, $promoMinQty, $promoType, $promoFreeQty, $promoActive]);
+    } catch (Throwable $e) {
         http_response_code(500);
-        echo json_encode(['error' => 'Gagal menghapus dari database: ' . $e->getMessage()]);
+        echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
         exit;
     }
 
-    // Hapus file (lama) jika masih di server lokal (bukan Google Drive)
-    if (!empty($imgUrl) && strpos($imgUrl, "/uploads/") !== false) {
-        $localFilePath = __DIR__ . $imgUrl;
-        if (file_exists($localFilePath)) {
-            @unlink($localFilePath);
-        }
-    }
+    $savedProduct = [
+        'id' => $id,
+        'category' => $category,
+        'name' => $name,
+        'description' => $description,
+        'price' => $price,
+        'costPrice' => $costPrice,
+        'stock' => $stock,
+        'badge' => $badge,
+        'imageUrl' => $imageUrl,
+        'variants' => json_decode($variants, true),
+        'keywords' => $keywords,
+        'available' => (bool)$available,
+        'promoType' => $promoType,
+        'promoInfo' => $promoInfo,
+        'promoPrice' => $promoPrice,
+        'promoMinQty' => $promoMinQty,
+        'promoFreeQty' => $promoFreeQty,
+        'promoActive' => (bool)$promoActive
+    ];
 
+    $menuItems = fetchDatabaseMenuItems($pdo);
     echo json_encode([
         'success' => true, 
-        'deletedId' => $id
+        'product' => $savedProduct,
+        'menuItems' => $menuItems
     ]);
     exit;
 }

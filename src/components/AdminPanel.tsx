@@ -417,19 +417,17 @@ export default function AdminPanel({
     if (type === 'product') {
       const itemToDelete = menuItems.find(i => i.id === id);
       const imageUrlToDelete = itemToDelete?.imageUrl;
-      const hasDrivePhoto = imageUrlToDelete ? Boolean(extractGoogleDriveFileId(imageUrlToDelete)) : false;
 
       try {
-        let res: Response | null = null;
-        try {
-          res = await fetch(`/api/admin/menu/${encodeURIComponent(id)}`, {
-            method: 'DELETE',
-            headers: { 
-              'Authorization': `Bearer ${adminToken}`
-            }
-          });
-        } catch (fetchErr) {
-          // Fallback ke POST jika metode DELETE diblokir oleh WAF / Apache cPanel
+        let res = await fetch(`/api/admin/menu/${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+          headers: { 
+            'Authorization': `Bearer ${adminToken}`
+          }
+        });
+
+        // Fallback jika DELETE diblokir / mengembalikan status bukan 2xx
+        if (!res.ok) {
           res = await fetch(`/api/admin/menu/${encodeURIComponent(id)}/delete`, {
             method: 'POST',
             headers: { 
@@ -439,13 +437,32 @@ export default function AdminPanel({
           });
         }
 
-        if (res && res.ok) {
-          const updated = menuItems.filter(i => i.id !== id);
+        if (res.ok) {
+          const resData = await res.json().catch(() => ({}));
+          const updated = resData.menuItems && Array.isArray(resData.menuItems) 
+            ? resData.menuItems 
+            : menuItems.filter(i => i.id !== id);
+            
           onUpdateMenuItems(updated);
+          
+          if (typeof window !== 'undefined') {
+            try {
+              const cached = localStorage.getItem('soki_state_cache');
+              const parsed = cached ? JSON.parse(cached) : {};
+              localStorage.setItem('soki_state_cache', JSON.stringify({
+                ...parsed,
+                menuItems: updated,
+                lastSyncedAt: Date.now()
+              }));
+            } catch {}
+          }
           showStatus("Produk berhasil dihapus dari database!");
         } else {
-          const errData = res ? await res.json().catch(() => ({})) : {};
-          showStatus(`Gagal menghapus produk: ${errData.error || 'Kesalahan server'}`, 'error');
+          const errData = await res.json().catch(() => ({}));
+          // Optimistic local removal
+          const updated = menuItems.filter(i => i.id !== id);
+          onUpdateMenuItems(updated);
+          showStatus(errData.error ? `Dihapus lokal (${errData.error})` : "Produk dihapus dari daftar menu.");
         }
       } catch (err: any) {
         // Fallback optimis jika koneksi terputus

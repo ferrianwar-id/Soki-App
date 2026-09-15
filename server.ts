@@ -1840,7 +1840,7 @@ app.post("/api/upload", async (req, res) => {
 });
 
   // Product CRUD (Supports both /api/admin/products and /api/admin/menu)
-  const handleCreateProduct = (req: express.Request, res: express.Response) => {
+  const handleCreateProduct = async (req: express.Request, res: express.Response) => {
     try {
       const { name, category, price, costPrice, stock, description, badge, imageUrl, variants, promoType, promoInfo, promoPrice, promoMinQty, promoFreeQty, promoActive, available } = req.body;
       if (!name || price === undefined) {
@@ -1886,7 +1886,63 @@ app.post("/api/upload", async (req, res) => {
         promoActive: pActive
       };
 
+      // Remove existing duplicate ID if any, then push new
+      menuItems = menuItems.filter(m => m.id !== newProduct.id);
       menuItems.push(newProduct);
+
+      // Direct synchronous insert/update into MySQL
+      if (dbPool) {
+        let conn;
+        try {
+          conn = await dbPool.getConnection();
+          await conn.query(`
+            INSERT INTO menu_produk (id, kategori, nama, deskripsi, harga, harga_modal, stok, badge, gambar_url, varian_json, kata_kunci, tersedia, info_promo, harga_promo, min_qty_promo, promo_tipe, gratis_qty_promo, promo_aktif, dibuat_pada)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+            ON DUPLICATE KEY UPDATE
+              kategori = VALUES(kategori),
+              nama = VALUES(nama),
+              deskripsi = VALUES(deskripsi),
+              harga = VALUES(harga),
+              harga_modal = VALUES(harga_modal),
+              stok = VALUES(stok),
+              badge = VALUES(badge),
+              gambar_url = VALUES(gambar_url),
+              varian_json = VALUES(varian_json),
+              kata_kunci = VALUES(kata_kunci),
+              tersedia = VALUES(tersedia),
+              info_promo = VALUES(info_promo),
+              harga_promo = VALUES(harga_promo),
+              min_qty_promo = VALUES(min_qty_promo),
+              promo_tipe = VALUES(promo_tipe),
+              gratis_qty_promo = VALUES(gratis_qty_promo),
+              promo_aktif = VALUES(promo_aktif)
+          `, [
+            newProduct.id,
+            newProduct.category,
+            newProduct.name,
+            newProduct.description || '',
+            newProduct.price,
+            newProduct.costPrice || 0,
+            newProduct.stock !== undefined ? newProduct.stock : null,
+            newProduct.badge || 'Menu Baru',
+            newProduct.imageUrl || '',
+            JSON.stringify(newProduct.variants || ['Original']),
+            newProduct.keywords || '',
+            newProduct.available ? 1 : 0,
+            newProduct.promoInfo || '',
+            newProduct.promoPrice !== undefined ? newProduct.promoPrice : null,
+            newProduct.promoMinQty !== undefined ? newProduct.promoMinQty : null,
+            newProduct.promoType || 'bundle_price',
+            newProduct.promoFreeQty !== undefined ? newProduct.promoFreeQty : null,
+            newProduct.promoActive ? 1 : 0
+          ]);
+        } catch (dbErr: any) {
+          console.warn("Notice direct insert product to MySQL:", dbErr.message);
+        } finally {
+          if (conn) try { conn.release(); } catch {}
+        }
+      }
+
       persistData();
       res.status(201).json({ success: true, product: newProduct, menuItems });
     } catch (err: any) {
@@ -1894,12 +1950,14 @@ app.post("/api/upload", async (req, res) => {
     }
   };
 
-  const handleUpdateProduct = (req: express.Request, res: express.Response) => {
+  const handleUpdateProduct = async (req: express.Request, res: express.Response) => {
     try {
       const { id } = req.params;
       const index = menuItems.findIndex(m => m.id === id);
       if (index === -1) {
-        return res.status(404).json({ error: "Produk tidak ditemukan." });
+        // If not found in memory, try to upsert as new with given id
+        req.body.id = id;
+        return handleCreateProduct(req, res);
       }
 
       const parsedStock = req.body.stock !== undefined && req.body.stock !== null && req.body.stock !== '' 
@@ -1916,6 +1974,7 @@ app.post("/api/upload", async (req, res) => {
       menuItems[index] = {
         ...menuItems[index],
         ...req.body,
+        id,
         price: Number(req.body.price ?? menuItems[index].price),
         costPrice: req.body.costPrice !== undefined ? Number(req.body.costPrice) : (menuItems[index].costPrice || 0),
         stock: parsedStock,
@@ -1928,15 +1987,70 @@ app.post("/api/upload", async (req, res) => {
         promoActive: pActive
       };
 
+      const updatedProd = menuItems[index];
+
+      // Direct synchronous update into MySQL
+      if (dbPool) {
+        let conn;
+        try {
+          conn = await dbPool.getConnection();
+          await conn.query(`
+            INSERT INTO menu_produk (id, kategori, nama, deskripsi, harga, harga_modal, stok, badge, gambar_url, varian_json, kata_kunci, tersedia, info_promo, harga_promo, min_qty_promo, promo_tipe, gratis_qty_promo, promo_aktif)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON DUPLICATE KEY UPDATE
+              kategori = VALUES(kategori),
+              nama = VALUES(nama),
+              deskripsi = VALUES(deskripsi),
+              harga = VALUES(harga),
+              harga_modal = VALUES(harga_modal),
+              stok = VALUES(stok),
+              badge = VALUES(badge),
+              gambar_url = VALUES(gambar_url),
+              varian_json = VALUES(varian_json),
+              kata_kunci = VALUES(kata_kunci),
+              tersedia = VALUES(tersedia),
+              info_promo = VALUES(info_promo),
+              harga_promo = VALUES(harga_promo),
+              min_qty_promo = VALUES(min_qty_promo),
+              promo_tipe = VALUES(promo_tipe),
+              gratis_qty_promo = VALUES(gratis_qty_promo),
+              promo_aktif = VALUES(promo_aktif)
+          `, [
+            updatedProd.id,
+            updatedProd.category,
+            updatedProd.name,
+            updatedProd.description || '',
+            updatedProd.price,
+            updatedProd.costPrice || 0,
+            updatedProd.stock !== undefined ? updatedProd.stock : null,
+            updatedProd.badge || 'Menu Pilihan',
+            updatedProd.imageUrl || '',
+            JSON.stringify(updatedProd.variants || ['Original']),
+            updatedProd.keywords || '',
+            updatedProd.available ? 1 : 0,
+            updatedProd.promoInfo || '',
+            updatedProd.promoPrice !== undefined ? updatedProd.promoPrice : null,
+            updatedProd.promoMinQty !== undefined ? updatedProd.promoMinQty : null,
+            updatedProd.promoType || 'bundle_price',
+            updatedProd.promoFreeQty !== undefined ? updatedProd.promoFreeQty : null,
+            updatedProd.promoActive ? 1 : 0
+          ]);
+        } catch (dbErr: any) {
+          console.warn("Notice direct update product to MySQL:", dbErr.message);
+        } finally {
+          if (conn) try { conn.release(); } catch {}
+        }
+      }
+
       persistData();
-      res.json({ success: true, product: menuItems[index], menuItems });
+      res.json({ success: true, product: updatedProd, menuItems });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
     }
   };
 
   // Quick Stock Update Endpoint
-  app.patch("/api/admin/menu/:id/stock", requireAdmin, (req, res) => {
+  app.patch("/api/admin/menu/:id/stock", requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { stock } = req.body;
@@ -1953,6 +2067,22 @@ app.post("/api/upload", async (req, res) => {
         menuItems[index].available = true;
       }
 
+      if (dbPool) {
+        let conn;
+        try {
+          conn = await dbPool.getConnection();
+          await conn.query("UPDATE menu_produk SET stok = ?, tersedia = ? WHERE id = ?", [
+            parsedStock !== undefined ? parsedStock : null,
+            menuItems[index].available ? 1 : 0,
+            id
+          ]);
+        } catch (dbErr: any) {
+          console.warn("Notice direct stock update to MySQL:", dbErr.message);
+        } finally {
+          if (conn) try { conn.release(); } catch {}
+        }
+      }
+
       persistData();
       res.json({ success: true, product: menuItems[index], menuItems });
     } catch (err: any) {
@@ -1961,7 +2091,7 @@ app.post("/api/upload", async (req, res) => {
   });
 
   // Restock Product Endpoint (Menambah stok yang habis tanpa harus input ulang produk)
-  app.post("/api/admin/menu/:id/restock", requireAdmin, (req, res) => {
+  app.post("/api/admin/menu/:id/restock", requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const { addStock, stock } = req.body;
@@ -1977,6 +2107,18 @@ app.post("/api/upload", async (req, res) => {
       menuItems[index].stock = newStock;
       menuItems[index].available = true; // Otomatis aktif kembali saat direstok
 
+      if (dbPool) {
+        let conn;
+        try {
+          conn = await dbPool.getConnection();
+          await conn.query("UPDATE menu_produk SET stok = ?, tersedia = 1 WHERE id = ?", [newStock, id]);
+        } catch (dbErr: any) {
+          console.warn("Notice direct restock to MySQL:", dbErr.message);
+        } finally {
+          if (conn) try { conn.release(); } catch {}
+        }
+      }
+
       persistData();
       res.json({
         success: true,
@@ -1990,7 +2132,7 @@ app.post("/api/upload", async (req, res) => {
   });
 
   // Reset Single Product Stock to Zero (Kembalikan stok ke 0 tanpa hapus produk)
-  app.post("/api/admin/menu/:id/reset-stock", requireAdmin, (req, res) => {
+  app.post("/api/admin/menu/:id/reset-stock", requireAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const index = menuItems.findIndex(m => m.id === id);
@@ -2000,6 +2142,18 @@ app.post("/api/upload", async (req, res) => {
 
       menuItems[index].stock = 0;
       menuItems[index].available = false;
+
+      if (dbPool) {
+        let conn;
+        try {
+          conn = await dbPool.getConnection();
+          await conn.query("UPDATE menu_produk SET stok = 0, tersedia = 0 WHERE id = ?", [id]);
+        } catch (dbErr: any) {
+          console.warn("Notice direct reset stock to MySQL:", dbErr.message);
+        } finally {
+          if (conn) try { conn.release(); } catch {}
+        }
+      }
 
       persistData();
       res.json({
@@ -2014,12 +2168,24 @@ app.post("/api/upload", async (req, res) => {
   });
 
   // Reset All Products Stock to Zero (Reset semua stok produk ke 0 tanpa hapus produk)
-  app.post("/api/admin/menu/reset-all-stocks", requireAdmin, (_req, res) => {
+  app.post("/api/admin/menu/reset-all-stocks", requireAdmin, async (_req, res) => {
     try {
       menuItems.forEach(item => {
         item.stock = 0;
         item.available = false;
       });
+
+      if (dbPool) {
+        let conn;
+        try {
+          conn = await dbPool.getConnection();
+          await conn.query("UPDATE menu_produk SET stok = 0, tersedia = 0");
+        } catch (dbErr: any) {
+          console.warn("Notice direct reset all stocks to MySQL:", dbErr.message);
+        } finally {
+          if (conn) try { conn.release(); } catch {}
+        }
+      }
 
       persistData();
       res.json({
@@ -2037,6 +2203,8 @@ app.post("/api/upload", async (req, res) => {
 
   app.put("/api/admin/products/:id", requireAdmin, handleUpdateProduct);
   app.put("/api/admin/menu/:id", requireAdmin, handleUpdateProduct);
+  app.post("/api/admin/products/:id", requireAdmin, handleUpdateProduct);
+  app.post("/api/admin/menu/:id", requireAdmin, handleUpdateProduct);
 
   // Helper: Hapus foto di Google Drive via Apps Script Webhook
   const deleteDrivePhotoIfPresent = (imageUrl?: string) => {
@@ -2068,11 +2236,25 @@ app.post("/api/upload", async (req, res) => {
     }
   };
 
-  const handleDeleteProduct = (req: express.Request, res: express.Response) => {
+  const handleDeleteProduct = async (req: express.Request, res: express.Response) => {
     try {
       const { id } = req.params;
       const targetItem = menuItems.find(m => m.id === id);
       menuItems = menuItems.filter(m => m.id !== id);
+
+      // Direct synchronous delete from MySQL
+      if (dbPool) {
+        let conn;
+        try {
+          conn = await dbPool.getConnection();
+          await conn.query("DELETE FROM menu_produk WHERE id = ?", [id]);
+        } catch (dbErr: any) {
+          console.warn("Notice direct delete product from MySQL:", dbErr.message);
+        } finally {
+          if (conn) try { conn.release(); } catch {}
+        }
+      }
+
       persistData();
 
       // Hapus foto di Google Drive (asynchronous background)
