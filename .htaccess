@@ -1,0 +1,47 @@
+<IfModule mod_mime.c>
+  AddType text/css .css
+  AddType application/javascript .js
+  AddType application/javascript .mjs
+  AddType application/json .json
+  AddType image/svg+xml .svg
+  AddType image/webp .webp
+  AddType font/woff2 .woff2
+  AddType font/woff .woff
+</IfModule>
+
+<IfModule mod_headers.c>
+  # Jangan cache index.html agar perubahan update selalu terbaca langsung oleh HP
+  <FilesMatch "\.(html|htm)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires 0
+  </FilesMatch>
+
+  # Cache asset statis ber-hash (CSS/JS) dengan aman
+  <FilesMatch "\.(js|css|webp|png|jpg|jpeg|svg|woff2)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Preserve HTTP Authorization Header for PHP
+  RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+
+  # Proxy /api requests to api.php if on standard PHP cPanel
+  RewriteRule ^api/(.*)$ api.php [QSA,L]
+  RewriteRule ^api$ api.php [QSA,L]
+
+  # Direct access for existing files and directories (CSS, JS, images, etc.)
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # If dist/index.html exists, fallback to dist/index.html, otherwise index.html
+  RewriteCond %{DOCUMENT_ROOT}/dist/index.html -f
+  RewriteRule ^ dist/index.html [L]
+
+  # SPA Fallback to index.html
+  RewriteRule ^ index.html [L]
+</IfModule>
