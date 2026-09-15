@@ -1,17 +1,17 @@
 import { StoreScheduleConfig, DaySchedule } from '../types';
 
 export const defaultWeeklySchedule: DaySchedule[] = [
-  { day: 'monday', dayName: 'Senin', isOpen: true, openTime: '08:00', closeTime: '17:00' },
-  { day: 'tuesday', dayName: 'Selasa', isOpen: true, openTime: '08:00', closeTime: '17:00' },
-  { day: 'wednesday', dayName: 'Rabu', isOpen: true, openTime: '07:30', closeTime: '17:30' },
-  { day: 'thursday', dayName: 'Kamis', isOpen: true, openTime: '08:00', closeTime: '17:00' },
-  { day: 'friday', dayName: 'Jumat', isOpen: true, openTime: '08:00', closeTime: '17:00' },
-  { day: 'saturday', dayName: 'Sabtu', isOpen: true, openTime: '08:00', closeTime: '15:00' },
-  { day: 'sunday', dayName: 'Minggu', isOpen: false, openTime: '08:00', closeTime: '15:00' },
+  { day: 'monday', dayName: 'Senin', isOpen: true, openTime: '00:00', closeTime: '23:59' },
+  { day: 'tuesday', dayName: 'Selasa', isOpen: true, openTime: '00:00', closeTime: '23:59' },
+  { day: 'wednesday', dayName: 'Rabu', isOpen: true, openTime: '00:00', closeTime: '23:59' },
+  { day: 'thursday', dayName: 'Kamis', isOpen: true, openTime: '00:00', closeTime: '23:59' },
+  { day: 'friday', dayName: 'Jumat', isOpen: true, openTime: '00:00', closeTime: '23:59' },
+  { day: 'saturday', dayName: 'Sabtu', isOpen: true, openTime: '00:00', closeTime: '23:59' },
+  { day: 'sunday', dayName: 'Minggu', isOpen: true, openTime: '00:00', closeTime: '23:59' },
 ];
 
 export const defaultStoreSchedule: StoreScheduleConfig = {
-  statusMode: 'auto',
+  statusMode: 'force_open',
   closedTitle: 'Toko Sedang Tutup',
   closedMessage: 'Halo! Saat ini toko SOKI sedang tutup dan akan buka kembali sesuai jadwal operasional. Silakan cek jadwal buka kami di bawah ini.',
   allowPreorderWhatsApp: false,
